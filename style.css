@@ -159,6 +159,99 @@ header p {
     margin-bottom: 0;
 }
 
+/* 経済学者カードのスタイル */
+.economist-card {
+    border-radius: 10px;
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+}
+
+.economist-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+}
+
+.krugman-card {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-left: 5px solid #4caf50;
+}
+
+.levitt-card {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-left: 5px solid #2196f3;
+}
+
+.economist-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid rgba(0,0,0,0.1);
+}
+
+.economist-icon {
+    font-size: 2.5rem;
+    margin-right: 1rem;
+}
+
+.economist-info h3 {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 0.2rem;
+    font-weight: bold;
+}
+
+.economist-specialty {
+    color: #666;
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+.economist-commentary {
+    line-height: 1.6;
+    animation: fadeIn 0.5s ease-in;
+}
+
+.economist-commentary p {
+    margin-bottom: 0.8rem;
+    color: #444;
+    font-size: 0.9rem;
+}
+
+.economist-commentary p:last-child {
+    margin-bottom: 0;
+}
+
+.economist-commentary ul {
+    margin-left: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.economist-commentary li {
+    margin-bottom: 0.5rem;
+    color: #444;
+    font-size: 0.9rem;
+}
+
+.economist-commentary strong {
+    color: #222;
+    font-weight: 600;
+}
+
+/* フェードインアニメーション */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .turn-info {
     background: #e8f4f8;
     padding: 1rem;
