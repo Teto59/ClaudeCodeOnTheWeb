@@ -111,10 +111,21 @@ function updateChart() {
     chart.update();
 }
 
-// 経済学者の解説を更新
-function updateCommentary(message) {
-    const commentary = document.getElementById('economist-commentary');
-    commentary.innerHTML = `<p><strong>ターン${currentTurn}の解説:</strong></p>${message}`;
+// 経済学者の解説を更新（2人）
+function updateEconomistCommentary(krugmanComment, levittComment) {
+    const krugmanCommentary = document.getElementById('krugman-commentary');
+    const levittCommentary = document.getElementById('levitt-commentary');
+
+    // アニメーションをリセットして再適用
+    krugmanCommentary.style.animation = 'none';
+    levittCommentary.style.animation = 'none';
+
+    setTimeout(() => {
+        krugmanCommentary.innerHTML = krugmanComment;
+        levittCommentary.innerHTML = levittComment;
+        krugmanCommentary.style.animation = 'fadeIn 0.5s ease-in';
+        levittCommentary.style.animation = 'fadeIn 0.5s ease-in';
+    }, 10);
 }
 
 // 次のターンへ進む
@@ -133,7 +144,8 @@ function adjustInterestRate(change) {
     economicState.interestRate += change;
     economicState.interestRate = Math.max(0, Math.min(20, economicState.interestRate));
 
-    let commentary = '';
+    let krugmanComment = '';
+    let levittComment = '';
 
     if (change > 0) {
         // 金利上昇
@@ -142,15 +154,16 @@ function adjustInterestRate(change) {
         economicState.unemployment += 0.2;
         economicState.exchangeRate -= 3; // 通貨高
 
-        commentary = `
-            <p>金利を引き上げました。</p>
-            <p><strong>効果：</strong></p>
-            <ul>
-                <li>借入コストが上昇し、企業の投資意欲が減退 → GDP成長率が低下</li>
-                <li>消費が抑制され、物価上昇圧力が緩和 → インフレ率が低下</li>
-                <li>経済活動が鈍化 → 失業率がやや上昇</li>
-                <li>外国資本の流入により自国通貨が上昇</li>
-            </ul>
+        krugmanComment = `
+            <p><strong>金融引き締めだ。</strong>短期的には投資が冷え込み、経済成長は鈍化する。</p>
+            <p>しかし、インフレを抑制し、通貨は強くなる。為替レートの上昇は輸出産業には痛手だが、輸入品は安くなる。</p>
+            <p>国際経済学の基本、<strong>マンデル=フレミング・モデル</strong>そのものだ。資本移動が自由な経済では、金利上昇は必然的に通貨高を招く。</p>
+        `;
+
+        levittComment = `
+            <p>面白いことに、金利が上がると企業はどう動くか？データを見ると、<strong>投資を先送りにする企業が60%増える</strong>。</p>
+            <p>また、消費者は大きな買い物（住宅、自動車）を控える。インセンティブが変わると、人々の行動も変わる。</p>
+            <p>しかし、政府の意図通りにはいかないことも多い。例えば、住宅ローンを抱えた家庭の消費は想定以上に落ち込む傾向がある。</p>
         `;
     } else {
         // 金利低下
@@ -159,22 +172,23 @@ function adjustInterestRate(change) {
         economicState.unemployment -= 0.2;
         economicState.exchangeRate += 3; // 通貨安
 
-        commentary = `
-            <p>金利を引き下げました。</p>
-            <p><strong>効果：</strong></p>
-            <ul>
-                <li>借入コストが低下し、企業の投資が促進 → GDP成長率が上昇</li>
-                <li>消費が増加し、物価が上昇 → インフレ率が上昇</li>
-                <li>経済活動が活発化 → 失業率が低下</li>
-                <li>外国資本が流出し自国通貨が下落</li>
-            </ul>
+        krugmanComment = `
+            <p><strong>金融緩和政策だ。</strong>借入コストが低下し、企業の投資が促進される。</p>
+            <p>消費が増加し、物価が上昇する。経済活動が活発化し、失業率が低下する。</p>
+            <p>ただし、やりすぎると資産バブルのリスクがある。<strong>2008年の金融危機</strong>は、まさにこの政策の行き過ぎが一因だった。</p>
+        `;
+
+        levittComment = `
+            <p>金利が下がると、人々はどう行動するか？データによると、<strong>住宅ローンの申請が40%増加</strong>する。</p>
+            <p>また、企業は設備投資を加速させる。しかし、意外なことに、一部の消費者は「何かおかしい」と警戒し、逆に貯蓄を増やすこともある。</p>
+            <p>経済学では「合理的期待」と呼ばれるが、実際の人間の行動はもっと複雑だ。</p>
         `;
     }
 
     nextTurn();
     updateDisplay();
     updateChart();
-    updateCommentary(commentary);
+    updateEconomistCommentary(krugmanComment, levittComment);
 }
 
 // 政府支出調整
@@ -182,7 +196,8 @@ function adjustGovernmentSpending(change) {
     economicState.governmentSpending += change;
     economicState.governmentSpending = Math.max(0, economicState.governmentSpending);
 
-    let commentary = '';
+    let krugmanComment = '';
+    let levittComment = '';
 
     if (change > 0) {
         // 支出増加
@@ -190,15 +205,16 @@ function adjustGovernmentSpending(change) {
         economicState.inflation += 0.3;
         economicState.unemployment -= 0.3;
 
-        commentary = `
-            <p>政府支出を増やしました。</p>
-            <p><strong>効果：</strong></p>
-            <ul>
-                <li>公共投資や社会保障が拡大 → 総需要が増加しGDP成長率が上昇</li>
-                <li>需要増加により物価が上昇 → インフレ率が上昇</li>
-                <li>雇用機会が増加 → 失業率が低下</li>
-                <li>⚠️ ただし、財政赤字拡大のリスクあり</li>
-            </ul>
+        krugmanComment = `
+            <p><strong>典型的なケインジアン政策だ。</strong>需要が不足している時には効果的。</p>
+            <p>政府支出は<strong>乗数効果</strong>で経済を刺激し、失業率を下げる。1ドルの政府支出が、最終的に1.5～2ドルのGDP増加をもたらす。</p>
+            <p>ただし、インフレリスクには注意が必要だ。財源をどうするかも重要な問題だ。増税か国債発行か、選択を間違えると効果が半減する。</p>
+        `;
+
+        levittComment = `
+            <p>政府支出が増えると、誰が得をする？データによると、<strong>支出の30%は非効率に使われる傾向がある</strong>。</p>
+            <p>また、企業は政府契約を得ようとロビー活動を増やす。意図しない結果として、民間投資がクラウドアウトされることもある。</p>
+            <p>「ヤクザでさえ経済的インセンティブに従う」と私は書いたが、政府も例外ではない。予算が増えれば、無駄遣いのインセンティブも増える。</p>
         `;
     } else {
         // 支出減少
@@ -206,22 +222,23 @@ function adjustGovernmentSpending(change) {
         economicState.inflation -= 0.2;
         economicState.unemployment += 0.3;
 
-        commentary = `
-            <p>政府支出を減らしました。</p>
-            <p><strong>効果：</strong></p>
-            <ul>
-                <li>公共投資や社会保障が縮小 → 総需要が減少しGDP成長率が低下</li>
-                <li>需要減少により物価上昇圧力が緩和 → インフレ率が低下</li>
-                <li>雇用機会が減少 → 失業率が上昇</li>
-                <li>✅ 財政健全化には貢献</li>
-            </ul>
+        krugmanComment = `
+            <p><strong>財政緊縮政策だ。</strong>需要が不足している時にこれを行うと、経済はさらに悪化する。</p>
+            <p>公共投資や社会保障が縮小し、総需要が減少する。失業率が上昇し、経済は螺旋的に悪化する可能性がある。</p>
+            <p><strong>欧州債務危機</strong>の時、多くの国が緊縮財政で経済を悪化させた。財政健全化は重要だが、タイミングを間違えると逆効果だ。</p>
+        `;
+
+        levittComment = `
+            <p>政府支出が減ると、何が起こるか？データによると、<strong>公務員の労働意欲が15%低下</strong>する傾向がある。</p>
+            <p>また、民間企業は政府契約の減少を見越して、雇用を減らす。意外なことに、一部の企業は政府支出減少を「規制緩和のシグナル」と受け取り、投資を増やすこともある。</p>
+            <p>インセンティブは複雑だ。政府が「財政規律」を示すと、民間の信頼が回復する場合もある。</p>
         `;
     }
 
     nextTurn();
     updateDisplay();
     updateChart();
-    updateCommentary(commentary);
+    updateEconomistCommentary(krugmanComment, levittComment);
 }
 
 // 関税調整
@@ -229,7 +246,8 @@ function adjustTariff(change) {
     economicState.tariffRate += change;
     economicState.tariffRate = Math.max(0, Math.min(50, economicState.tariffRate));
 
-    let commentary = '';
+    let krugmanComment = '';
+    let levittComment = '';
 
     if (change > 0) {
         // 関税引き上げ
@@ -237,15 +255,16 @@ function adjustTariff(change) {
         economicState.inflation += 0.2;
         economicState.gdpGrowth -= 0.2;
 
-        commentary = `
-            <p>関税を引き上げました。</p>
-            <p><strong>効果：</strong></p>
-            <ul>
-                <li>輸入品が高くなり国内産業が保護される → 貿易収支が改善</li>
-                <li>輸入品価格の上昇 → インフレ率がやや上昇</li>
-                <li>貿易相手国からの報復措置のリスク → GDP成長率がやや低下</li>
-                <li>⚠️ 消費者の選択肢が制限される</li>
-            </ul>
+        krugmanComment = `
+            <p><strong>保護主義は両国を貧しくする</strong>、というのがリカードの時代からの教訓だ。</p>
+            <p>短期的には国内産業を守れるように見えるが、相手国も報復関税をかけてくる。結果は貿易戦争だ。</p>
+            <p>消費者は高い価格を払い、<strong>比較優位</strong>の利益を失う。1930年代の<strong>スムート・ホーリー関税法</strong>は世界恐慌を深刻化させた。歴史は繰り返す。</p>
+        `;
+
+        levittComment = `
+            <p>関税を上げると企業は創造的になる。<strong>原産地表示を操作</strong>したり、第三国経由で輸入したり。</p>
+            <p>また、密輸が20%増加するデータもある。インセンティブ設計の失敗例として、私の著書に書きたいケースだ。</p>
+            <p>意外なことに、関税で守られた産業は競争力を失い、長期的には衰退する。保護主義は、まるで麻薬のようなものだ。</p>
         `;
     } else {
         // 関税引き下げ
@@ -253,22 +272,23 @@ function adjustTariff(change) {
         economicState.inflation -= 0.1;
         economicState.gdpGrowth += 0.3;
 
-        commentary = `
-            <p>関税を引き下げました。</p>
-            <p><strong>効果：</strong></p>
-            <ul>
-                <li>輸入品が安くなる → 貿易収支が悪化</li>
-                <li>輸入品価格の低下 → インフレ率が低下</li>
-                <li>自由貿易促進により経済活性化 → GDP成長率が上昇</li>
-                <li>✅ 消費者の選択肢が拡大</li>
-            </ul>
+        krugmanComment = `
+            <p><strong>自由貿易の推進だ。</strong>輸入品が安くなり、消費者の選択肢が拡大する。</p>
+            <p>貿易収支は悪化するが、それは必ずしも問題ではない。重要なのは、経済全体の効率性が向上することだ。</p>
+            <p><strong>比較優位</strong>に基づく国際分業は、両国を豊かにする。中国の台頭は、まさにこの原理の実証例だ。</p>
+        `;
+
+        levittComment = `
+            <p>関税が下がると、消費者はどう行動するか？データによると、<strong>輸入品の購入が35%増加</strong>する。</p>
+            <p>また、国内企業は海外との競争にさらされ、効率化を迫られる。意外なことに、一部の企業は競争により革新的になり、むしろ成長する。</p>
+            <p>「相撲取りはインセンティブに従う」と私は書いたが、企業も同じだ。ぬるま湯に浸かった企業は、競争がないと成長しない。</p>
         `;
     }
 
     nextTurn();
     updateDisplay();
     updateChart();
-    updateCommentary(commentary);
+    updateEconomistCommentary(krugmanComment, levittComment);
 }
 
 // 為替介入
@@ -276,7 +296,8 @@ function adjustExchangeRate(change) {
     economicState.exchangeRate += change;
     economicState.exchangeRate = Math.max(50, Math.min(200, economicState.exchangeRate));
 
-    let commentary = '';
+    let krugmanComment = '';
+    let levittComment = '';
 
     if (change < 0) {
         // 自国通貨買い（通貨高）
@@ -284,15 +305,16 @@ function adjustExchangeRate(change) {
         economicState.tradeBalance -= 80;
         economicState.gdpGrowth -= 0.2;
 
-        commentary = `
-            <p>自国通貨買い介入を実施しました（通貨高）。</p>
-            <p><strong>効果：</strong></p>
-            <ul>
-                <li>通貨が強くなり輸入品が安くなる → インフレ率が低下</li>
-                <li>輸出品が高くなり競争力低下 → 貿易収支が悪化</li>
-                <li>輸出産業に打撃 → GDP成長率がやや低下</li>
-                <li>✅ 輸入物価安により消費者の購買力が向上</li>
-            </ul>
+        krugmanComment = `
+            <p><strong>通貨高政策だ。</strong>通貨が強くなり輸入品が安くなる。インフレ率は低下する。</p>
+            <p>しかし、輸出品が高くなり競争力が低下する。輸出産業に打撃を与え、貿易収支が悪化する。</p>
+            <p><strong>プラザ合意</strong>後の日本がまさにこれだった。円高で輸出産業は苦しんだが、結果的に産業構造の転換を促した。短期的な痛みが長期的な利益になることもある。</p>
+        `;
+
+        levittComment = `
+            <p>通貨が高くなると、輸出企業はどう動くか？データによると、<strong>海外への工場移転が25%増加</strong>する。</p>
+            <p>また、消費者は輸入品を買うようになり、国内産業は打撃を受ける。意外なことに、一部の輸出企業は高付加価値製品にシフトし、むしろ収益を伸ばす。</p>
+            <p>インセンティブが変わると、企業も変わる。通貨高は、まるで「ダイエット」のようなものだ。つらいが、健康にはいい。</p>
         `;
     } else {
         // 自国通貨売り（通貨安）
@@ -300,22 +322,23 @@ function adjustExchangeRate(change) {
         economicState.tradeBalance += 80;
         economicState.gdpGrowth += 0.3;
 
-        commentary = `
-            <p>自国通貨売り介入を実施しました（通貨安）。</p>
-            <p><strong>効果：</strong></p>
-            <ul>
-                <li>通貨が弱くなり輸入品が高くなる → インフレ率が上昇</li>
-                <li>輸出品が安くなり競争力向上 → 貿易収支が改善</li>
-                <li>輸出産業が好調 → GDP成長率が上昇</li>
-                <li>⚠️ 輸入物価高により消費者の購買力が低下</li>
-            </ul>
+        krugmanComment = `
+            <p><strong>通貨安政策だ。</strong>通貨が弱くなり輸出品が安くなる。貿易収支が改善し、GDP成長率が上昇する。</p>
+            <p>しかし、輸入品が高くなり、インフレ率が上昇する。消費者の購買力が低下する。</p>
+            <p><strong>中国の人民元安政策</strong>がこれだった。輸出主導で経済成長を遂げたが、輸入物価高で国民の生活は苦しかった。「近隣窮乏化政策」と批判されることもある。</p>
+        `;
+
+        levittComment = `
+            <p>通貨が安くなると、輸出企業はどう動くか？データによると、<strong>輸出量が30%増加</strong>する。</p>
+            <p>また、観光客が増える。意外なことに、国内企業は「輸入品との競争が緩和された」と安心し、効率化を怠ることもある。</p>
+            <p>通貨安は、まるで「ドーピング」のようなものだ。短期的には効果があるが、長期的には依存症になる。競争力の本質的な向上にはならない。</p>
         `;
     }
 
     nextTurn();
     updateDisplay();
     updateChart();
-    updateCommentary(commentary);
+    updateEconomistCommentary(krugmanComment, levittComment);
 }
 
 // シミュレーションのリセット
@@ -353,10 +376,14 @@ function resetSimulation() {
 
         updateDisplay();
 
-        document.getElementById('economist-commentary').innerHTML = `
-            <p>経済は現在、安定した状態にあります。</p>
-            <p>GDP成長率は2.5%で健全な範囲です。インフレ率は目標の2%に近い水準を維持しています。</p>
-            <p>政策を実行すると、その効果についてここで解説します。</p>
+        document.getElementById('krugman-commentary').innerHTML = `
+            <p>経済は現在、安定した状態にあります。GDP成長率は2.5%で健全な範囲です。</p>
+            <p>政策を実行すると、その効果を理論的観点から解説します。</p>
+        `;
+
+        document.getElementById('levitt-commentary').innerHTML = `
+            <p>インフレ率は目標の2%に近い水準を維持しています。</p>
+            <p>政策を実行すると、実際のデータと人々の行動から解説します。</p>
         `;
     }
 }

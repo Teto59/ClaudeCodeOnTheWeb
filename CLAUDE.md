@@ -145,15 +145,119 @@ let economicState = {
 
 ---
 
+## Phase 2: 経済学者解説システム ✅ 完了
+
+### 実装内容
+
+#### 1. 2人の経済学者キャラクター
+
+##### 🌍 ポール・クルーグマン
+- **専門**: 国際貿易・マクロ経済学
+- **性格**: 理論的、やや辛口、グローバル視点
+- **特徴**: 経済学の理論（マンデル=フレミング・モデル、比較優位など）を引用し、歴史的事例（プラザ合意、欧州債務危機など）を用いて解説
+
+##### 💡 スティーヴン・レヴィット
+- **専門**: 行動経済学・データ分析
+- **性格**: 皮肉的、意外性を重視、具体例好き
+- **特徴**: データを引用し（「60%増える」など）、意図しない結果や人々のインセンティブに注目。比喩表現（「ダイエット」「ドーピング」「麻薬」など）を使用
+
+#### 2. UI/UXの実装
+
+- 右サイドバーに2つの経済学者カードを縦配置
+- クルーグマンのカード：緑系グラデーション（`#e8f5e9` → `#c8e6c9`）
+- レヴィットのカード：青系グラデーション（`#e3f2fd` → `#bbdefb`）
+- 各カードに経済学者のアイコン、名前、専門分野を表示
+- ホバー時に浮き上がるエフェクト
+- コメント更新時にフェードインアニメーション（0.5秒）
+
+#### 3. 各政策に対するコメント
+
+全8つの政策（金利上げ/下げ、政府支出増/減、関税上げ/下げ、通貨買い/売り）に対して、それぞれ2人の経済学者の独自のコメントを実装。
+
+**特徴的なコメント例:**
+
+- **クルーグマン（金利上げ）**: 「マンデル=フレミング・モデルそのものだ」
+- **レヴィット（金利上げ）**: 「投資を先送りにする企業が60%増える」
+- **クルーグマン（関税上げ）**: 「保護主義は両国を貧しくする、というのがリカードの時代からの教訓だ」
+- **レヴィット（関税上げ）**: 「密輸が20%増加するデータもある」
+- **クルーグマン（政府支出増）**: 「典型的なケインジアン政策だ」
+- **レヴィット（政府支出増）**: 「支出の30%は非効率に使われる傾向がある」
+
+#### 4. 技術実装
+
+- `updateEconomistCommentary(krugmanComment, levittComment)` 関数で2人のコメントを同時更新
+- アニメーションをリセットして再適用することでフェードイン効果を実現
+- 各政策関数（`adjustInterestRate`、`adjustGovernmentSpending`、`adjustTariff`、`adjustExchangeRate`）で個別のコメントを生成
+- リセット機能も2人のコメントに対応
+
+#### 5. コードの主要変更点
+
+**HTML（index.html）:**
+```html
+<!-- クルーグマンのカード -->
+<div class="economist-card krugman-card">
+    <div class="economist-header">
+        <span class="economist-icon">🌍</span>
+        <div class="economist-info">
+            <h3>ポール・クルーグマン</h3>
+            <p class="economist-specialty">国際貿易・マクロ経済学</p>
+        </div>
+    </div>
+    <div class="economist-commentary" id="krugman-commentary">...</div>
+</div>
+
+<!-- レヴィットのカード -->
+<div class="economist-card levitt-card">...</div>
+```
+
+**CSS（style.css）:**
+```css
+.krugman-card {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-left: 5px solid #4caf50;
+}
+
+.levitt-card {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-left: 5px solid #2196f3;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+```
+
+**JavaScript（app.js）:**
+```javascript
+function updateEconomistCommentary(krugmanComment, levittComment) {
+    const krugmanCommentary = document.getElementById('krugman-commentary');
+    const levittCommentary = document.getElementById('levitt-commentary');
+
+    // アニメーションをリセットして再適用
+    krugmanCommentary.style.animation = 'none';
+    levittCommentary.style.animation = 'none';
+
+    setTimeout(() => {
+        krugmanCommentary.innerHTML = krugmanComment;
+        levittCommentary.innerHTML = levittComment;
+        krugmanCommentary.style.animation = 'fadeIn 0.5s ease-in';
+        levittCommentary.style.animation = 'fadeIn 0.5s ease-in';
+    }, 10);
+}
+```
+
+---
+
 ## 次のフェーズで実装予定の機能
 
-### Phase 2（予定）
+### Phase 3（予定）
 - 複数国間の貿易・外交システム
 - 他国のAI動作
 - 経済ショックイベント（不況、好況、災害など）
 - より詳細な経済指標（株価、地価、債券利回りなど）
 
-### Phase 3（予定）
+### Phase 4（予定）
 - マルチプレイヤー対応
 - セーブ/ロード機能
 - 詳細な統計・ランキング
@@ -186,4 +290,5 @@ python3 -m http.server 8000
 ---
 
 **Phase 1 完了日**: 2025-10-25
+**Phase 2 完了日**: 2025-10-25
 **次回開発時の注意**: このドキュメントを読んで、現在の実装状況を把握してから作業を開始してください。
