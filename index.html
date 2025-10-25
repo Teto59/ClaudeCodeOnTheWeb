@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Economic Policy Simulator</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>🌍 Economic Policy Simulator</h1>
+        <p>あなたは経済政策の指導者です。政策を決定し、経済への影響を学びましょう</p>
+    </header>
+
+    <div class="container">
+        <!-- 左サイドバー: 政策選択エリア -->
+        <aside class="sidebar left">
+            <h2>📊 政策選択</h2>
+
+            <div class="policy-section">
+                <h3>💰 金融政策</h3>
+                <button class="policy-btn" onclick="adjustInterestRate(0.5)">金利を上げる (+0.5%)</button>
+                <button class="policy-btn" onclick="adjustInterestRate(-0.5)">金利を下げる (-0.5%)</button>
+            </div>
+
+            <div class="policy-section">
+                <h3>🏛️ 財政政策</h3>
+                <button class="policy-btn" onclick="adjustGovernmentSpending(100)">政府支出を増やす (+100億)</button>
+                <button class="policy-btn" onclick="adjustGovernmentSpending(-100)">政府支出を減らす (-100億)</button>
+            </div>
+
+            <div class="policy-section">
+                <h3>🌐 貿易政策</h3>
+                <button class="policy-btn" onclick="adjustTariff(2)">関税を上げる (+2%)</button>
+                <button class="policy-btn" onclick="adjustTariff(-2)">関税を下げる (-2%)</button>
+            </div>
+
+            <div class="policy-section">
+                <h3>💱 為替政策</h3>
+                <button class="policy-btn" onclick="adjustExchangeRate(5)">自国通貨買い (-5)</button>
+                <button class="policy-btn" onclick="adjustExchangeRate(-5)">自国通貨売り (+5)</button>
+            </div>
+        </aside>
+
+        <!-- メインエリア: グラフ表示 -->
+        <main class="main-content">
+            <h2>📈 経済指標</h2>
+
+            <div class="indicators-grid">
+                <div class="indicator">
+                    <h4>GDP成長率</h4>
+                    <p class="value" id="gdp-value">2.5%</p>
+                </div>
+                <div class="indicator">
+                    <h4>インフレ率</h4>
+                    <p class="value" id="inflation-value">2.0%</p>
+                </div>
+                <div class="indicator">
+                    <h4>失業率</h4>
+                    <p class="value" id="unemployment-value">5.0%</p>
+                </div>
+                <div class="indicator">
+                    <h4>金利</h4>
+                    <p class="value" id="interest-value">3.0%</p>
+                </div>
+                <div class="indicator">
+                    <h4>為替レート</h4>
+                    <p class="value" id="exchange-value">100</p>
+                    <small>対ドル</small>
+                </div>
+                <div class="indicator">
+                    <h4>貿易収支</h4>
+                    <p class="value" id="trade-value">0億</p>
+                </div>
+                <div class="indicator">
+                    <h4>政府支出</h4>
+                    <p class="value" id="spending-value">1000億</p>
+                </div>
+                <div class="indicator">
+                    <h4>関税率</h4>
+                    <p class="value" id="tariff-value">5.0%</p>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="economicChart"></canvas>
+            </div>
+        </main>
+
+        <!-- 右サイドバー: 経済学者の解説エリア -->
+        <aside class="sidebar right">
+            <h2>👨‍🏫 経済学者の解説</h2>
+            <div id="economist-commentary" class="commentary">
+                <p>経済は現在、安定した状態にあります。</p>
+                <p>GDP成長率は2.5%で健全な範囲です。インフレ率は目標の2%に近い水準を維持しています。</p>
+                <p>政策を実行すると、その効果についてここで解説します。</p>
+            </div>
+
+            <div class="turn-info">
+                <h3>ターン情報</h3>
+                <p>現在のターン: <span id="current-turn">1</span></p>
+                <button class="reset-btn" onclick="resetSimulation()">シミュレーションをリセット</button>
+            </div>
+        </aside>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
