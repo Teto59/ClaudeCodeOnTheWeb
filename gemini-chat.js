@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// Geminiチャット機能（ES Modulesなし、グローバルスコープ版）
 
 // システムプロンプト
 const SYSTEM_PROMPT = `
@@ -37,118 +37,101 @@ const SYSTEM_PROMPT = `
 `;
 
 // グローバル変数
-let genAI = null;
-let model = null;
-let chatInitialized = false;
+let geminiModel = null;
+let hasShownWelcome = false;
 
 // API Key管理
 function getApiKey() {
     return localStorage.getItem('gemini_api_key');
 }
 
-function setApiKey(key) {
+function saveApiKey(key) {
     localStorage.setItem('gemini_api_key', key);
 }
 
-function removeApiKey() {
+function deleteApiKey() {
     localStorage.removeItem('gemini_api_key');
+    geminiModel = null;
 }
 
-// Gemini AI初期化
-async function initializeGemini(apiKey) {
+// Gemini初期化
+function initGemini(apiKey) {
     try {
-        console.log('Gemini初期化開始...');
-        genAI = new GoogleGenerativeAI(apiKey);
-        model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        console.log('Gemini初期化成功');
+        // GoogleGenerativeAIがグローバルに読み込まれているか確認
+        if (typeof GoogleGenerativeAI === 'undefined') {
+            console.error('GoogleGenerativeAI is not loaded');
+            return false;
+        }
+
+        const genAI = new GoogleGenerativeAI(apiKey);
+        geminiModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+        console.log('Gemini initialized successfully');
         return true;
     } catch (error) {
-        console.error("Gemini initialization error:", error);
+        console.error('Gemini initialization failed:', error);
         return false;
     }
 }
 
-// チャットコンテナのクリア
-function clearChatContainer() {
-    const chatContainer = document.getElementById('chat-container');
-    if (chatContainer) {
-        chatContainer.innerHTML = '';
-    }
-    chatInitialized = false;
-}
-
-// 初期メッセージの表示
-function showWelcomeMessage() {
-    if (!chatInitialized) {
-        addMessage('ai', 'こんにちは！経済政策について質問してください。クルーグマンとレヴィットの視点から分析します。\n\n現在の経済状態を考慮したアドバイスを提供できます。');
-        chatInitialized = true;
-    }
-}
-
-// モーダル制御
+// 「Geminiに質問する」ボタンのクリックハンドラ
 window.openGeminiChat = function() {
-    console.log('openGeminiChat呼び出し');
     const apiKey = getApiKey();
 
     if (!apiKey) {
-        console.log('API Keyが未設定、設定画面を開く');
+        // API Key未設定の場合は設定モーダルを開く
         openApiKeyModal();
-        return;
-    }
-
-    // API Keyがある場合
-    console.log('API Keyが設定済み、チャットを開く');
-
-    // Geminiの初期化確認
-    if (!genAI || !model) {
-        console.log('Geminiを初期化...');
-        initializeGemini(apiKey).then(success => {
-            if (success) {
+    } else {
+        // API Key設定済みの場合はチャットモーダルを開く
+        if (!geminiModel) {
+            // 初期化されていない場合は初期化
+            if (initGemini(apiKey)) {
                 openChatModal();
             } else {
-                alert('Gemini APIの初期化に失敗しました。API Keyを確認してください。');
-                removeApiKey();
+                alert('Gemini APIの初期化に失敗しました。API Keyを再設定してください。');
+                deleteApiKey();
                 openApiKeyModal();
             }
-        });
-    } else {
-        openChatModal();
+        } else {
+            openChatModal();
+        }
     }
 };
 
+// チャットモーダルを開く
 function openChatModal() {
     const modal = document.getElementById('gemini-modal');
-    if (modal) {
-        modal.classList.add('active');
-        showWelcomeMessage();
+    modal.classList.add('active');
+
+    // 初回のみウェルカムメッセージを表示
+    if (!hasShownWelcome) {
+        clearChat();
+        addMessage('ai', 'こんにちは！経済政策について質問してください。クルーグマンとレヴィットの視点から分析します。\n\n現在の経済状態を考慮したアドバイスを提供できます。');
+        hasShownWelcome = true;
     }
 }
 
+// チャットモーダルを閉じる
 window.closeGeminiChat = function() {
     const modal = document.getElementById('gemini-modal');
-    if (modal) {
-        modal.classList.remove('active');
-    }
+    modal.classList.remove('active');
 };
 
+// API Key設定モーダルを開く
 function openApiKeyModal() {
     const modal = document.getElementById('api-key-modal');
-    if (modal) {
-        modal.classList.add('active');
-    }
+    modal.classList.add('active');
 }
 
+// API Key設定モーダルを閉じる
 window.closeApiKeyModal = function() {
     const modal = document.getElementById('api-key-modal');
-    if (modal) {
-        modal.classList.remove('active');
-    }
+    modal.classList.remove('active');
 };
 
 // API Key保存
-window.saveApiKey = async function() {
-    const apiKeyInput = document.getElementById('api-key-input');
-    const apiKey = apiKeyInput.value.trim();
+window.saveApiKey = function() {
+    const input = document.getElementById('api-key-input');
+    const apiKey = input.value.trim();
 
     if (!apiKey) {
         alert('API Keyを入力してください。');
@@ -160,74 +143,73 @@ window.saveApiKey = async function() {
         return;
     }
 
-    console.log('API Keyを保存...');
-    setApiKey(apiKey);
+    // API Keyを保存
+    saveApiKey(apiKey);
 
-    // Gemini初期化
-    const success = await initializeGemini(apiKey);
-
-    if (success) {
-        console.log('初期化成功、モーダルを閉じてチャットを開く');
-        apiKeyInput.value = '';
+    // Geminiを初期化
+    if (initGemini(apiKey)) {
+        input.value = '';
         closeApiKeyModal();
 
-        // チャットをクリアして開く
-        clearChatContainer();
+        // チャットをクリアしてモーダルを開く
+        clearChat();
+        hasShownWelcome = false;
 
-        // 少し待ってからチャットモーダルを開く
         setTimeout(() => {
             openChatModal();
-        }, 100);
+        }, 200);
     } else {
         alert('API Keyの初期化に失敗しました。正しいAPI Keyを入力してください。');
-        removeApiKey();
+        deleteApiKey();
     }
 };
 
-// チャットメッセージ追加
-function addMessage(type, text) {
-    const chatContainer = document.getElementById('chat-container');
-    if (!chatContainer) {
-        console.error('チャットコンテナが見つかりません');
-        return null;
+// チャットをクリア
+function clearChat() {
+    const container = document.getElementById('chat-container');
+    if (container) {
+        container.innerHTML = '';
     }
+}
+
+// メッセージを追加
+function addMessage(type, text) {
+    const container = document.getElementById('chat-container');
+    if (!container) return;
 
     const messageDiv = document.createElement('div');
     messageDiv.className = `chat-message ${type}`;
 
-    // Markdown形式の簡易変換
-    const formattedText = text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // **太字**
-        .replace(/\n/g, '<br>');  // 改行
+    // 簡易的なMarkdown変換
+    const formatted = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
 
-    messageDiv.innerHTML = `<p>${formattedText}</p>`;
-    chatContainer.appendChild(messageDiv);
+    messageDiv.innerHTML = `<p>${formatted}</p>`;
+    container.appendChild(messageDiv);
 
     // 自動スクロール
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    container.scrollTop = container.scrollHeight;
 
     return messageDiv;
 }
 
-// ローディングメッセージ
-function addLoadingMessage() {
-    const chatContainer = document.getElementById('chat-container');
-    if (!chatContainer) {
-        console.error('チャットコンテナが見つかりません');
-        return null;
-    }
+// ローディング表示
+function showLoading() {
+    const container = document.getElementById('chat-container');
+    if (!container) return null;
 
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'chat-message loading';
-    messageDiv.innerHTML = '<p>💭 考え中...</p>';
-    chatContainer.appendChild(messageDiv);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-    return messageDiv;
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'chat-message loading';
+    loadingDiv.innerHTML = '<p>💭 考え中...</p>';
+    container.appendChild(loadingDiv);
+    container.scrollTop = container.scrollHeight;
+
+    return loadingDiv;
 }
 
-// 経済状態の取得
-function getEconomicContext() {
-    // app.jsのeconomicStateにアクセス
+// 経済状態を取得
+function getEconomicState() {
     if (typeof economicState !== 'undefined' && typeof currentTurn !== 'undefined') {
         return `
 【現在の経済状態】
@@ -252,91 +234,66 @@ window.sendMessage = async function() {
     const input = document.getElementById('chat-input');
     const message = input.value.trim();
 
-    if (!message) {
-        console.log('空のメッセージ、送信しない');
-        return;
-    }
+    if (!message) return;
 
-    console.log('メッセージ送信:', message);
-
-    // ユーザーメッセージを追加
+    // ユーザーメッセージを表示
     addMessage('user', message);
-
-    // 入力欄をクリア
     input.value = '';
 
     // 送信ボタンを無効化
     const sendBtn = document.querySelector('.send-btn');
-    if (sendBtn) {
-        sendBtn.disabled = true;
-    }
+    if (sendBtn) sendBtn.disabled = true;
 
     // ローディング表示
-    const loadingMsg = addLoadingMessage();
+    const loading = showLoading();
 
     try {
         // モデルの確認
-        if (!model) {
-            throw new Error('Gemini APIが初期化されていません');
+        if (!geminiModel) {
+            throw new Error('Gemini APIが初期化されていません。');
         }
 
-        // 経済状態を取得
-        const economicContext = getEconomicContext();
+        // プロンプト構築
+        const economicState = getEconomicState();
+        const prompt = `${SYSTEM_PROMPT}\n\n${economicState}\n\nユーザーの質問: ${message}`;
 
-        // プロンプトを構築
-        const fullPrompt = `${SYSTEM_PROMPT}\n\n${economicContext}\n\nユーザーの質問: ${message}`;
-
-        console.log('Gemini APIを呼び出し...');
-
-        // Gemini APIを呼び出し
-        const result = await model.generateContent(fullPrompt);
+        // API呼び出し
+        const result = await geminiModel.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
 
-        console.log('Gemini APIからの応答を受信');
+        // ローディング削除
+        if (loading) loading.remove();
 
-        // ローディングを削除
-        if (loadingMsg) {
-            loadingMsg.remove();
-        }
-
-        // AIの回答を追加
+        // AIの回答を表示
         addMessage('ai', text);
 
     } catch (error) {
-        console.error('Gemini API error:', error);
+        console.error('Error:', error);
 
-        // ローディングを削除
-        if (loadingMsg) {
-            loadingMsg.remove();
-        }
+        // ローディング削除
+        if (loading) loading.remove();
 
-        // エラーメッセージを表示
-        let errorMessage = 'エラーが発生しました。';
+        // エラーメッセージ
+        let errorMsg = '⚠️ エラーが発生しました。';
 
-        if (error.message.includes('API key') || error.message.includes('API_KEY')) {
-            errorMessage = '⚠️ API Keyが無効です。設定を確認してください。\n\nヘッダーの「Geminiに質問する」ボタンから再設定できます。';
-            removeApiKey();
-            genAI = null;
-            model = null;
-        } else if (error.message.includes('quota') || error.message.includes('QUOTA')) {
-            errorMessage = '⚠️ API利用制限に達しました。しばらく待ってから再試行してください。';
-        } else if (error.message.includes('初期化')) {
-            errorMessage = '⚠️ Gemini APIが初期化されていません。ページを更新してください。';
+        if (error.message.includes('API') || error.message.includes('key')) {
+            errorMsg = '⚠️ API Keyが無効です。設定を確認してください。';
+            deleteApiKey();
+        } else if (error.message.includes('quota')) {
+            errorMsg = '⚠️ API利用制限に達しました。しばらく待ってから再試行してください。';
         } else {
-            errorMessage = `⚠️ エラー: ${error.message}`;
+            errorMsg = `⚠️ エラー: ${error.message}`;
         }
 
-        addMessage('ai', errorMessage);
+        addMessage('ai', errorMsg);
     } finally {
         // 送信ボタンを有効化
-        if (sendBtn) {
-            sendBtn.disabled = false;
-        }
+        if (sendBtn) sendBtn.disabled = false;
     }
 };
 
-// Enterキーでメッセージ送信
+// Enterキーで送信
 window.handleChatKeypress = function(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
@@ -345,7 +302,7 @@ window.handleChatKeypress = function(event) {
 };
 
 // モーダル外クリックで閉じる
-window.addEventListener('click', function(event) {
+document.addEventListener('click', function(event) {
     const geminiModal = document.getElementById('gemini-modal');
     const apiKeyModal = document.getElementById('api-key-modal');
 
@@ -360,16 +317,11 @@ window.addEventListener('click', function(event) {
 
 // 初期化
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOMContentLoaded: gemini-chat.js初期化');
+    console.log('Gemini Chat initialized');
 
+    // 保存されたAPI Keyで初期化
     const apiKey = getApiKey();
     if (apiKey) {
-        console.log('保存されたAPI Keyを使用してGeminiを初期化');
-        initializeGemini(apiKey);
-    } else {
-        console.log('API Keyが未設定');
+        initGemini(apiKey);
     }
 });
-
-// デバッグ用
-console.log('gemini-chat.js読み込み完了');
