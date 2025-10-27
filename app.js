@@ -27,6 +27,7 @@ let chart = null;
 document.addEventListener('DOMContentLoaded', function() {
     updateDisplay();
     initChart();
+    updateAPIKeyStatus();
 });
 
 // 表示の更新
@@ -386,4 +387,191 @@ function resetSimulation() {
             <p>政策を実行すると、実際のデータと人々の行動から解説します。</p>
         `;
     }
+}
+
+// ===== Gemini API関連の関数 =====
+
+// モーダルを開く
+function openSettingsModal() {
+    const modal = document.getElementById('settings-modal');
+    modal.classList.add('show');
+
+    // 現在のAPI Keyをロード（マスク表示）
+    const apiKey = geminiClient.loadAPIKey();
+    const input = document.getElementById('api-key-input');
+    if (apiKey) {
+        input.value = '••••••••••••••••••••••••••••••••';
+        input.setAttribute('data-has-key', 'true');
+    } else {
+        input.value = '';
+        input.removeAttribute('data-has-key');
+    }
+
+    updateAPIKeyStatus();
+
+    // モーダル外クリックで閉じる
+    modal.onclick = function(event) {
+        if (event.target === modal) {
+            closeSettingsModal();
+        }
+    };
+}
+
+// モーダルを閉じる
+function closeSettingsModal() {
+    const modal = document.getElementById('settings-modal');
+    modal.classList.remove('show');
+}
+
+// API Keyを保存
+function saveAPIKey() {
+    const input = document.getElementById('api-key-input');
+    let apiKey = input.value.trim();
+
+    // マスク表示の場合は既存のキーを保持
+    if (input.getAttribute('data-has-key') === 'true' && apiKey.startsWith('••••')) {
+        alert('API Keyは既に設定されています。変更する場合は、新しいAPI Keyを入力してください。');
+        return;
+    }
+
+    if (!apiKey) {
+        alert('API Keyを入力してください');
+        return;
+    }
+
+    if (!apiKey.startsWith('AIza')) {
+        alert('API Keyの形式が正しくありません。「AIza」で始まるキーを入力してください。');
+        return;
+    }
+
+    geminiClient.saveAPIKey(apiKey);
+    updateAPIKeyStatus();
+    alert('API Keyを保存しました');
+    closeSettingsModal();
+}
+
+// API Keyを削除
+function clearAPIKey() {
+    if (confirm('API Keyを削除しますか？')) {
+        geminiClient.clearAPIKey();
+        document.getElementById('api-key-input').value = '';
+        document.getElementById('api-key-input').removeAttribute('data-has-key');
+        updateAPIKeyStatus();
+        alert('API Keyを削除しました');
+    }
+}
+
+// API Key設定状態を更新
+function updateAPIKeyStatus() {
+    const statusDiv = document.getElementById('api-key-status');
+    if (!statusDiv) return;
+
+    if (geminiClient.hasAPIKey()) {
+        statusDiv.className = 'api-key-status success';
+        statusDiv.innerHTML = '✓ API Keyが設定されています';
+    } else {
+        statusDiv.className = 'api-key-status warning';
+        statusDiv.innerHTML = '⚠ API Keyが設定されていません';
+    }
+}
+
+// 政策分析を実行
+async function analyzePolicy() {
+    // API Keyのチェック
+    if (!geminiClient.hasAPIKey()) {
+        alert('API Keyが設定されていません。「⚙️ API設定」ボタンからAPI Keyを設定してください。');
+        openSettingsModal();
+        return;
+    }
+
+    // UIの状態をリセット
+    document.getElementById('ai-result').style.display = 'none';
+    document.getElementById('ai-error').style.display = 'none';
+    document.getElementById('ai-loading').style.display = 'block';
+
+    try {
+        // Gemini APIに分析をリクエスト
+        const result = await geminiClient.analyzePolicyRecommendation(economicState);
+
+        // 結果を表示
+        displayAnalysisResult(result);
+
+    } catch (error) {
+        // エラーを表示
+        displayAnalysisError(error.message);
+    } finally {
+        // ローディングを非表示
+        document.getElementById('ai-loading').style.display = 'none';
+    }
+}
+
+// 分析結果を表示
+function displayAnalysisResult(result) {
+    const resultDiv = document.getElementById('ai-result');
+    const contentDiv = document.getElementById('ai-result-content');
+
+    // Markdownをシンプルに変換（改行とボールドのみ）
+    const htmlResult = convertMarkdownToHTML(result);
+
+    contentDiv.innerHTML = htmlResult;
+    resultDiv.style.display = 'block';
+
+    // スクロール
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// 分析エラーを表示
+function displayAnalysisError(errorMessage) {
+    const errorDiv = document.getElementById('ai-error');
+    errorDiv.textContent = '⚠ エラー: ' + errorMessage;
+    errorDiv.style.display = 'block';
+}
+
+// 分析結果を閉じる
+function closeAnalysisResult() {
+    document.getElementById('ai-result').style.display = 'none';
+}
+
+// シンプルなMarkdown to HTML変換
+function convertMarkdownToHTML(markdown) {
+    let html = markdown;
+
+    // 見出し変換
+    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+    // ボールド
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // リスト
+    html = html.replace(/^\* (.+)$/gim, '<li>$1</li>');
+    html = html.replace(/^- (.+)$/gim, '<li>$1</li>');
+    html = html.replace(/^(\d+)\. (.+)$/gim, '<li>$2</li>');
+
+    // リストをラップ
+    html = html.replace(/(<li>.*<\/li>)/s, function(match) {
+        return '<ul>' + match + '</ul>';
+    });
+
+    // 段落
+    const lines = html.split('\n');
+    let inList = false;
+    const processedLines = lines.map(line => {
+        line = line.trim();
+
+        if (line.startsWith('<h') || line.startsWith('<ul') || line.startsWith('</ul') || line.startsWith('<li')) {
+            return line;
+        }
+
+        if (line.length === 0) {
+            return '';
+        }
+
+        return '<p>' + line + '</p>';
+    });
+
+    html = processedLines.join('\n');
+
+    return html;
 }

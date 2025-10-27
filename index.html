@@ -9,8 +9,13 @@
 </head>
 <body>
     <header>
-        <h1>🌍 Economic Policy Simulator</h1>
-        <p>あなたは経済政策の指導者です。政策を決定し、経済への影響を学びましょう</p>
+        <div class="header-content">
+            <div>
+                <h1>🌍 Economic Policy Simulator</h1>
+                <p>あなたは経済政策の指導者です。政策を決定し、経済への影響を学びましょう</p>
+            </div>
+            <button class="settings-btn" onclick="openSettingsModal()">⚙️ API設定</button>
+        </div>
     </header>
 
     <div class="container">
@@ -86,6 +91,28 @@
             <div class="chart-container">
                 <canvas id="economicChart"></canvas>
             </div>
+
+            <!-- AI政策分析セクション -->
+            <div class="ai-analysis-section">
+                <h2>🤖 AI経済政策分析</h2>
+                <p class="ai-description">現在の経済状況に基づいて、Gemini AIが科学的・経済学的に妥当な政策を提案します</p>
+                <button class="analyze-btn" onclick="analyzePolicy()">
+                    <span class="analyze-btn-icon">🔍</span>
+                    政策を分析する
+                </button>
+                <div class="ai-result" id="ai-result" style="display: none;">
+                    <div class="ai-result-header">
+                        <h3>📊 分析結果</h3>
+                        <button class="close-result-btn" onclick="closeAnalysisResult()">✕</button>
+                    </div>
+                    <div class="ai-result-content" id="ai-result-content"></div>
+                </div>
+                <div class="ai-loading" id="ai-loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>分析中...</p>
+                </div>
+                <div class="ai-error" id="ai-error" style="display: none;"></div>
+            </div>
         </main>
 
         <!-- 右サイドバー: 経済学者の解説エリア -->
@@ -130,6 +157,53 @@
         </aside>
     </div>
 
+    <!-- API設定モーダル -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Gemini API 設定</h2>
+                <button class="modal-close" onclick="closeSettingsModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">
+                    Gemini AIによる経済政策分析を利用するには、Google AI StudioでAPI Keyを取得してください。
+                </p>
+                <div class="api-key-status" id="api-key-status"></div>
+                <div class="form-group">
+                    <label for="api-key-input">Gemini API Key</label>
+                    <input
+                        type="password"
+                        id="api-key-input"
+                        placeholder="AIza..."
+                        autocomplete="off"
+                    />
+                    <small class="form-help">
+                        API Keyはブラウザのみに保存され、GitHubには送信されません
+                    </small>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-primary" onclick="saveAPIKey()">保存</button>
+                    <button class="btn-secondary" onclick="clearAPIKey()">削除</button>
+                    <button class="btn-secondary" onclick="closeSettingsModal()">キャンセル</button>
+                </div>
+                <div class="help-section">
+                    <h3>📖 API Keyの取得方法</h3>
+                    <ol>
+                        <li><a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a> にアクセス</li>
+                        <li>「Create API Key」をクリック</li>
+                        <li>生成されたAPI Keyをコピー</li>
+                        <li>上記の入力欄に貼り付けて「保存」</li>
+                    </ol>
+                    <p class="help-note">
+                        <strong>注意:</strong> API Keyは第三者に共有しないでください。
+                        このアプリはAPI Keyをブラウザのみに保存し、外部に送信しません。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="gemini-api.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

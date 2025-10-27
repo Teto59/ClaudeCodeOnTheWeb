@@ -249,15 +249,168 @@ function updateEconomistCommentary(krugmanComment, levittComment) {
 
 ---
 
+## Phase 3: Gemini API統合 - AI経済政策分析 ✅ 完了
+
+### 実装内容
+
+#### 1. セキュリティ設計（パブリックリポジトリ対応）
+
+**課題:**
+- GitHub Pagesは静的サイトのみ（バックエンドサーバー不可）
+- API KeyをソースコードにハードコードするとGitHubに公開されてしまう
+
+**解決策:**
+- ユーザー自身のGemini API Keyを使用
+- LocalStorageに保存（ブラウザのみ、リポジトリには保存されない）
+- APIリクエストはクライアント側から直接（Gemini APIはCORS対応）
+
+#### 2. ファイル構成
+
+```
+/
+├── index.html       # メインHTMLファイル（設定モーダル、AI分析UIを追加）
+├── style.css        # スタイルシート（モーダル、AI分析セクションのスタイルを追加）
+├── app.js           # JavaScript（API Key管理、AI分析機能を追加）
+├── gemini-api.js    # 🆕 Gemini APIクライアント
+├── README.md        # プロジェクト説明（API Key取得方法を追加）
+└── CLAUDE.md        # このファイル（Phase 3の内容を追記）
+```
+
+#### 3. UI/UX実装
+
+##### ヘッダー
+- 「⚙️ API設定」ボタンを追加（右上）
+- レスポンシブデザイン対応
+
+##### 設定モーダル
+- モーダルダイアログでAPI Key入力フォーム
+- API Key設定状態の視覚的フィードバック（✓ 設定済み / ⚠ 未設定）
+- API Keyの保存/削除機能
+- Google AI StudioへのリンクとAPI Key取得手順を表示
+
+##### AI政策分析セクション
+- メインエリア下部に「🤖 AI経済政策分析」セクションを追加
+- 「🔍 政策を分析する」ボタン
+- ローディングアニメーション（スピナー）
+- 分析結果表示エリア（Markdownレンダリング対応）
+- エラー表示エリア
+
+#### 4. 機能実装
+
+##### API Key管理（app.js）
+
+**主要関数:**
+- `openSettingsModal()`: 設定モーダルを開く
+- `closeSettingsModal()`: 設定モーダルを閉じる
+- `saveAPIKey()`: API Keyを保存（バリデーション付き）
+- `clearAPIKey()`: API Keyを削除
+- `updateAPIKeyStatus()`: API Key設定状態を更新
+
+**セキュリティ機能:**
+- API Keyの形式チェック（`AIza...` で始まる）
+- マスク表示（`••••••••`）
+- LocalStorageのみに保存（GitHubには保存されない）
+
+##### Gemini APIクライアント（gemini-api.js）
+
+**クラス: GeminiAPIClient**
+
+**主要メソッド:**
+```javascript
+loadAPIKey()                              // LocalStorageから読み込み
+saveAPIKey(apiKey)                        // LocalStorageに保存
+clearAPIKey()                             // LocalStorageから削除
+hasAPIKey()                               // 設定済みかチェック
+analyzePolicyRecommendation(economicState) // AI分析をリクエスト
+buildPrompt(economicState)                // プロンプトを構築
+```
+
+**APIエンドポイント:**
+```
+https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent
+```
+
+**プロンプト構成:**
+1. 現在の経済指標（8つ）を提示
+2. 分析の観点を指定
+   - 経済状況の評価
+   - 問題点の特定
+   - 政策提案（4カテゴリ）
+   - 経済学的根拠
+   - リスク分析
+
+##### 政策分析機能（app.js）
+
+**主要関数:**
+- `analyzePolicy()`: AI分析を実行
+- `displayAnalysisResult(result)`: 分析結果を表示
+- `displayAnalysisError(errorMessage)`: エラーを表示
+- `closeAnalysisResult()`: 分析結果を閉じる
+- `convertMarkdownToHTML(markdown)`: Markdown→HTML変換
+
+**フロー:**
+1. API Keyの存在確認
+2. ローディング表示開始
+3. Gemini APIにリクエスト
+4. 結果をMarkdownからHTMLに変換
+5. 結果を表示（成功時）またはエラー表示（失敗時）
+6. ローディング表示終了
+
+#### 5. スタイリング（style.css）
+
+**追加されたスタイル:**
+- `.settings-btn`: API設定ボタン
+- `.modal`, `.modal-content`: モーダルダイアログ
+- `.ai-analysis-section`: AI分析セクション
+- `.analyze-btn`: 分析ボタン
+- `.ai-result`: 分析結果エリア
+- `.ai-loading`, `.spinner`: ローディングアニメーション
+- `.ai-error`: エラー表示
+
+**アニメーション:**
+- `slideDown`: モーダル表示時
+- `fadeInUp`: 分析結果表示時
+- `spin`: ローディングスピナー
+
+#### 6. ユーザーフロー
+
+**初回利用時:**
+1. 「⚙️ API設定」ボタンをクリック
+2. Google AI StudioでAPI Keyを取得
+3. API Keyを入力して保存
+4. 「🔍 政策を分析する」ボタンをクリック
+5. AI分析結果を確認
+
+**2回目以降:**
+1. API KeyはLocalStorageに保存済み
+2. 「🔍 政策を分析する」ボタンをクリックするだけ
+
+#### 7. エラーハンドリング
+
+- API Key未設定: アラート表示 → 設定モーダルを自動表示
+- API Key無効: エラーメッセージ表示
+- ネットワークエラー: エラーメッセージ表示
+- APIレスポンス空: エラーメッセージ表示
+
+#### 8. README.md更新内容
+
+- Gemini API Keyの取得方法（手順付き）
+- API Keyの設定方法（スクリーンショット風説明）
+- AI分析の実行方法
+- セキュリティとプライバシーに関する説明
+- トラブルシューティング
+
+---
+
 ## 次のフェーズで実装予定の機能
 
-### Phase 3（予定）
+### Phase 4（予定）
 - 複数国間の貿易・外交システム
 - 他国のAI動作
 - 経済ショックイベント（不況、好況、災害など）
 - より詳細な経済指標（株価、地価、債券利回りなど）
 
-### Phase 4（予定）
+### Phase 5（予定）
 - マルチプレイヤー対応
 - セーブ/ロード機能
 - 詳細な統計・ランキング
@@ -291,4 +444,5 @@ python3 -m http.server 8000
 
 **Phase 1 完了日**: 2025-10-25
 **Phase 2 完了日**: 2025-10-25
+**Phase 3 完了日**: 2025-10-27
 **次回開発時の注意**: このドキュメントを読んで、現在の実装状況を把握してから作業を開始してください。
