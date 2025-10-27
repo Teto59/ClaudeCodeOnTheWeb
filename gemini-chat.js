@@ -11,8 +11,13 @@
 
 // ==================== 定数 ====================
 const CONFIG = {
-    MODEL_NAME: 'gemini-2.5-pro',  // 最新の安定版モデル
-    STORAGE_KEY: 'gemini_api_key',
+    DEFAULT_MODEL: 'gemini-2.5-flash',  // デフォルトは高速版（レート制限緩い）
+    STORAGE_KEY_API: 'gemini_api_key',
+    STORAGE_KEY_MODEL: 'gemini_model_name',
+    AVAILABLE_MODELS: {
+        'gemini-2.5-flash': { name: 'Gemini 2.5 Flash', description: '高速・レート制限緩い' },
+        'gemini-2.5-pro': { name: 'Gemini 2.5 Pro', description: '高品質・レート制限厳しい' }
+    },
     SYSTEM_PROMPT: `あなたは2人の著名な経済学者の知見を統合したAIアシスタントです：
 
 【ポール・クルーグマン】
@@ -52,18 +57,39 @@ const State = {
     chatHistory: []
 };
 
+// ==================== Model管理 ====================
+const ModelManager = {
+    get() {
+        return localStorage.getItem(CONFIG.STORAGE_KEY_MODEL) || CONFIG.DEFAULT_MODEL;
+    },
+
+    set(modelName) {
+        if (CONFIG.AVAILABLE_MODELS[modelName]) {
+            localStorage.setItem(CONFIG.STORAGE_KEY_MODEL, modelName);
+        }
+    },
+
+    getCurrentModel() {
+        return this.get();
+    },
+
+    getModelInfo(modelName) {
+        return CONFIG.AVAILABLE_MODELS[modelName] || null;
+    }
+};
+
 // ==================== API Key管理 ====================
 const ApiKeyManager = {
     get() {
-        return localStorage.getItem(CONFIG.STORAGE_KEY);
+        return localStorage.getItem(CONFIG.STORAGE_KEY_API);
     },
 
     set(key) {
-        localStorage.setItem(CONFIG.STORAGE_KEY, key);
+        localStorage.setItem(CONFIG.STORAGE_KEY_API, key);
     },
 
     remove() {
-        localStorage.removeItem(CONFIG.STORAGE_KEY);
+        localStorage.removeItem(CONFIG.STORAGE_KEY_API);
         State.ai = null;
         State.isInitialized = false;
     },
@@ -114,8 +140,9 @@ const GeminiAPI = {
             });
 
             State.isInitialized = true;
+            const currentModel = ModelManager.getCurrentModel();
             console.log(`✅ Gemini initialized successfully`);
-            console.log(`📦 Model: ${CONFIG.MODEL_NAME}`);
+            console.log(`📦 Model: ${currentModel}`);
             console.log(`🆕 Using new SDK: @google/genai`);
 
             return { success: true };
@@ -151,8 +178,9 @@ const GeminiAPI = {
             const fullPrompt = `${CONFIG.SYSTEM_PROMPT}\n\n${economicContext}\n\nユーザーの質問: ${userMessage}`;
 
             // 新しいSDKの書き方（Google公式）
+            const currentModel = ModelManager.getCurrentModel();
             const response = await State.ai.models.generateContent({
-                model: CONFIG.MODEL_NAME,
+                model: currentModel,
                 contents: fullPrompt
             });
 
@@ -180,12 +208,15 @@ const GeminiAPI = {
             if (error.message?.includes('API key') || error.message?.includes('API_KEY_INVALID')) {
                 errorMessage = 'APIキーが無効です。設定を確認してください';
                 ApiKeyManager.remove();
+            } else if (error.message?.includes('503') || error.message?.includes('overloaded') || error.message?.includes('UNAVAILABLE')) {
+                errorMessage = 'レートリミットに達しました。しばらく待ってから再度試行してください。';
             } else if (error.message?.includes('quota') || error.message?.includes('limit') || error.message?.includes('RESOURCE_EXHAUSTED')) {
                 errorMessage = 'API使用量制限に達しました。しばらく待ってから再試行してください';
             } else if (error.message?.includes('model not found') || error.message?.includes('models/') || error.message?.includes('404')) {
-                errorMessage = `モデル "${CONFIG.MODEL_NAME}" の呼び出しに失敗しました。\n\nエラー詳細: ${error.message}`;
-                console.error('🔍 使用中のモデル:', CONFIG.MODEL_NAME);
-                console.error('💡 利用可能なモデル: gemini-2.5-pro, gemini-2.5-flash, gemini-1.5-pro, gemini-1.5-flash');
+                const currentModel = ModelManager.getCurrentModel();
+                errorMessage = `モデル "${currentModel}" の呼び出しに失敗しました。\n\nエラー詳細: ${error.message}`;
+                console.error('🔍 使用中のモデル:', currentModel);
+                console.error('💡 利用可能なモデル: gemini-2.5-pro, gemini-2.5-flash');
             } else if (error.message) {
                 errorMessage = error.message;
             }
@@ -331,6 +362,10 @@ window.openApiKeyModal = function() {
     if (existingKey) {
         UI.Input.setValue('api-key-input', existingKey);
     }
+
+    // 既存のモデル選択を表示
+    const currentModel = ModelManager.getCurrentModel();
+    UI.Input.setValue('model-select', currentModel);
 };
 
 /**
@@ -346,6 +381,7 @@ window.closeApiKeyModal = function() {
  */
 window.saveApiKey = async function() {
     const apiKey = UI.Input.getValue('api-key-input');
+    const selectedModel = UI.Input.getValue('model-select');
 
     // バリデーション
     const validation = ApiKeyManager.validate(apiKey);
@@ -356,6 +392,7 @@ window.saveApiKey = async function() {
 
     // 保存
     ApiKeyManager.set(apiKey);
+    ModelManager.set(selectedModel);
 
     // 初期化
     const result = await GeminiAPI.initialize(apiKey);
