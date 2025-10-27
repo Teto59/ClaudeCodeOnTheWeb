@@ -482,6 +482,7 @@ python3 -m http.server 8000
 **Phase 3 完了日**: 2025-10-27
 **Phase 3 更新日**: 2025-10-27（gemini-2.5-pro + 2ボタンUI）
 **Phase 3 リファクタリング**: 2025-10-27（モダンUI + 完全書き直し）
+**Phase 3 バグ修正**: 2025-10-27（CDNライブラリ読み込み修正）
 **開発ブランチ**: `claude/init-economic-simulator-011CUTcqP6zef55zgcMFpC5H`
 
 ---
@@ -603,6 +604,67 @@ const EconomicStateHelper = {
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 ```
+
+---
+
+## Phase 3バグ修正: CDNライブラリ読み込み問題の解決 ✅ 完了
+
+### 問題
+- ユーザーがAPIキーを入力しても「❌ GoogleGenerativeAI is not defined」エラーが発生
+- CDNからのライブラリ読み込みが正しく動作していなかった
+
+### 原因
+- `@google/generative-ai`パッケージはブラウザで直接UMD形式を提供していない
+- ESM形式のみが提供されているため、従来のscriptタグでは読み込めなかった
+
+### 解決策
+
+**1. ESM版をグローバルに公開（index.html）**
+```html
+<script type="module">
+    import { GoogleGenerativeAI } from 'https://esm.run/@google/generative-ai';
+    window.GoogleGenerativeAI = GoogleGenerativeAI;
+    console.log('✅ GoogleGenerativeAI loaded');
+</script>
+```
+
+**2. ライブラリロード待機処理（gemini-chat.js）**
+```javascript
+const GeminiAPI = {
+    // ライブラリのロードを待つ
+    async waitForLibrary(maxWait = 5000) {
+        const startTime = Date.now();
+        while (typeof GoogleGenerativeAI === 'undefined') {
+            if (Date.now() - startTime > maxWait) {
+                throw new Error('Gemini APIライブラリの読み込みがタイムアウトしました');
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        console.log('✅ GoogleGenerativeAI is ready');
+    },
+
+    async initialize(apiKey) {
+        await this.waitForLibrary(); // ロードを待つ
+        // ...
+    }
+};
+```
+
+**3. defer属性の追加**
+```html
+<script src="gemini-chat.js" defer></script>
+```
+
+### 技術的詳細
+- ESM形式のライブラリをインポートし、`window`オブジェクトに公開
+- 最大5秒間、100msごとにライブラリのロードをチェック
+- タイムアウト時は適切なエラーメッセージを表示
+- `defer`属性でDOMロード後にスクリプトを実行
+
+### 結果
+✅ APIキーの入力と初期化が正常に動作
+✅ エラーハンドリングも適切に機能
+✅ ユーザー体験の向上
 
 ---
 

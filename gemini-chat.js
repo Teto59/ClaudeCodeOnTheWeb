@@ -81,9 +81,23 @@ const ApiKeyManager = {
 
 // ==================== Gemini初期化 ====================
 const GeminiAPI = {
+    // ライブラリのロードを待つ
+    async waitForLibrary(maxWait = 5000) {
+        const startTime = Date.now();
+        while (typeof GoogleGenerativeAI === 'undefined') {
+            if (Date.now() - startTime > maxWait) {
+                throw new Error('Gemini APIライブラリの読み込みがタイムアウトしました');
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        console.log('✅ GoogleGenerativeAI is ready');
+    },
+
     async initialize(apiKey) {
         try {
-            // GoogleGenerativeAIがロードされているか確認
+            // GoogleGenerativeAIがロードされるまで待つ
+            await this.waitForLibrary();
+
             if (typeof GoogleGenerativeAI === 'undefined') {
                 throw new Error('Gemini APIライブラリが読み込まれていません');
             }

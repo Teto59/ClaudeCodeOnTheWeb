@@ -205,10 +205,14 @@
         </div>
     </div>
 
-    <!-- Gemini API (UMD版) -->
-    <script src="https://cdn.jsdelivr.net/npm/@google/generative-ai"></script>
+    <!-- Gemini API (ESM版をグローバルに公開) -->
+    <script type="module">
+        import { GoogleGenerativeAI } from 'https://esm.run/@google/generative-ai';
+        window.GoogleGenerativeAI = GoogleGenerativeAI;
+        console.log('✅ GoogleGenerativeAI loaded');
+    </script>
 
     <script src="app.js"></script>
-    <script src="gemini-chat.js"></script>
+    <script src="gemini-chat.js" defer></script>
 </body>
 </html>
