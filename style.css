@@ -14,8 +14,19 @@ body {
 header {
     background: white;
     padding: 2rem;
-    text-align: center;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1800px;
+    margin: 0 auto;
+}
+
+.header-left {
+    flex: 1;
 }
 
 header h1 {
@@ -26,6 +37,28 @@ header h1 {
 header p {
     color: #666;
     font-size: 0.9rem;
+}
+
+.gemini-chat-btn {
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+}
+
+.gemini-chat-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.gemini-chat-btn:active {
+    transform: translateY(0);
 }
 
 .container {
@@ -317,4 +350,312 @@ header p {
 
 .sidebar::-webkit-scrollbar-thumb:hover {
     background: #764ba2;
+}
+
+/* ==============================
+   モーダル＆チャットUI
+   ============================== */
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 2px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    color: #667eea;
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    color: #dc3545;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 2px solid #f0f0f0;
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* チャットコンテナ */
+#chat-container {
+    min-height: 300px;
+    max-height: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.chat-message {
+    padding: 1rem;
+    border-radius: 10px;
+    max-width: 80%;
+    animation: fadeIn 0.3s ease;
+}
+
+.chat-message.user {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.chat-message.ai {
+    background: #f0f0f0;
+    color: #333;
+    align-self: flex-start;
+}
+
+.chat-message.loading {
+    background: #f0f0f0;
+    color: #999;
+    align-self: flex-start;
+}
+
+.chat-message p {
+    margin: 0 0 0.5rem 0;
+    line-height: 1.6;
+}
+
+.chat-message p:last-child {
+    margin-bottom: 0;
+}
+
+/* チャット入力エリア */
+#chat-input {
+    flex: 1;
+    padding: 0.8rem;
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#chat-input:focus {
+    border-color: #667eea;
+}
+
+.send-btn {
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+.send-btn:hover {
+    transform: translateY(-2px);
+}
+
+.send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* API Key設定モーダル */
+.api-key-setup {
+    max-width: 500px;
+}
+
+.info-box {
+    background: #e3f2fd;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    border-left: 4px solid #2196f3;
+}
+
+.info-box h4 {
+    color: #1976d2;
+    margin-bottom: 0.5rem;
+}
+
+.info-box ol {
+    margin-left: 1.5rem;
+    color: #555;
+}
+
+.info-box li {
+    margin-bottom: 0.3rem;
+}
+
+.info-box a {
+    color: #2196f3;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.info-box a:hover {
+    text-decoration: underline;
+}
+
+.input-group {
+    margin: 1.5rem 0;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #555;
+    font-weight: bold;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+    border-color: #667eea;
+}
+
+.warning-box {
+    background: #fff3cd;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    border-left: 4px solid #ffc107;
+}
+
+.warning-box p {
+    color: #856404;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.warning-box ul {
+    margin-left: 1.5rem;
+    color: #856404;
+}
+
+.warning-box li {
+    margin-bottom: 0.3rem;
+}
+
+.cancel-btn {
+    padding: 0.8rem 1.5rem;
+    background: white;
+    color: #999;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+    border-color: #999;
+    color: #666;
+}
+
+.save-btn {
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* レスポンシブ対応（モバイル） */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .gemini-chat-btn {
+        width: 100%;
+    }
+
+    .modal-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .chat-message {
+        max-width: 90%;
+    }
 }

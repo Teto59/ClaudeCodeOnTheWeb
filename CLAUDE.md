@@ -249,15 +249,192 @@ function updateEconomistCommentary(krugmanComment, levittComment) {
 
 ---
 
+## Phase 3: Gemini統合チャットシステム ✅ 完了
+
+### 実装内容
+
+#### 1. API Key管理システム
+
+**採用方式：ユーザー入力 + LocalStorage保存**
+
+公開リポジトリ（GitHub Pages）のため、サーバーサイドの環境変数が使えない。そのため、以下の方式を採用：
+
+- ユーザーが自分のAPI Keyを取得・入力
+- LocalStorageにブラウザローカルで保存
+- 外部サーバーには送信されない
+- 設定画面でいつでも削除可能
+
+**セキュリティ対策：**
+- 警告メッセージの表示
+- 共有PC使用時の注意喚起
+- パスワード入力フィールドでの非表示
+
+#### 2. UI/UX
+
+##### a. ヘッダー右上のボタン
+```html
+<button class="gemini-chat-btn">🤖 Geminiに質問する</button>
+```
+
+##### b. チャットモーダル
+- モーダルウィンドウでチャット画面を表示
+- チャット履歴エリア
+- メッセージ入力欄と送信ボタン
+- スクロール対応
+- レスポンシブデザイン（モバイル対応）
+
+##### c. API Key設定モーダル
+- 初回アクセス時に表示
+- Google AI Studioへのリンク
+- API Key取得手順の説明
+- 注意事項の表示
+- パスワード入力フィールド
+
+#### 3. システムプロンプト
+
+2人の経済学者の視点を統合したシステムプロンプトを実装：
+
+**クルーグマンの視点：**
+- 理論的アプローチ（IS-LMモデル、マンデル=フレミング・モデル）
+- 歴史的事例の引用（プラザ合意、欧州債務危機）
+- ケインジアン経済学
+- グローバルな視点
+
+**レヴィットの視点：**
+- データと統計の引用
+- インセンティブと意図しない結果
+- 比喩表現（「ダイエット」「ドーピング」など）
+- 因果関係の分析
+
+**回答形式：**
+- クルーグマンの視点（理論的・グローバル）
+- レヴィットの視点（データ・インセンティブ）
+- 総合的な推奨事項
+
+#### 4. 経済状態の統合
+
+現在の経済シミュレーション状態をGeminiに送信：
+
+```javascript
+【現在の経済状態】
+- GDP成長率: 2.5%
+- インフレ率: 2.0%
+- 失業率: 5.0%
+- 金利: 3.0%
+- 為替レート: 100 (対ドル)
+- 貿易収支: 0億
+- 政府支出: 1000億
+- 関税率: 5.0%
+- 現在のターン: 1
+```
+
+これにより、現在の状況を考慮した具体的なアドバイスが可能。
+
+#### 5. 技術スタック
+
+- **Gemini API**: `@google/generative-ai`（ES Modules経由）
+- **LocalStorage**: API Key保存
+- **Vanilla JavaScript**: チャット機能
+- **CSS**: モーダル＆チャットUI
+- **Import Maps**: ES Modulesのインポート
+
+#### 6. ファイル構成
+
+```
+/
+├── index.html       # ボタン＆モーダル追加
+├── style.css        # モーダル＆チャットUIスタイル
+├── app.js           # 既存の経済シミュレーション
+├── gemini-chat.js   # 新規：Gemini統合とチャット機能
+└── CLAUDE.md        # このファイル
+```
+
+#### 7. 主要機能
+
+- ✅ API Key管理（LocalStorage）
+- ✅ 初回設定画面
+- ✅ チャット履歴表示
+- ✅ メッセージ送受信
+- ✅ ローディング表示
+- ✅ エラーハンドリング
+- ✅ 経済状態の自動送信
+- ✅ システムプロンプト（2人の経済学者）
+- ✅ レスポンシブ対応
+
+#### 8. コードの主要部分
+
+**JavaScript（gemini-chat.js）:**
+```javascript
+const SYSTEM_PROMPT = `
+あなたは2人の著名な経済学者の知見を統合したAIアシスタントです：
+【ポール・クルーグマン】...
+【スティーヴン・レヴィット】...
+`;
+
+// API Key管理
+function getApiKey() {
+    return localStorage.getItem('gemini_api_key');
+}
+
+// Gemini初期化
+function initializeGemini(apiKey) {
+    genAI = new GoogleGenerativeAI(apiKey);
+    model = genAI.getGenerativeModel({ model: "gemini-pro" });
+}
+
+// メッセージ送信
+async function sendMessage() {
+    const economicContext = getEconomicContext();
+    const fullPrompt = `${SYSTEM_PROMPT}\n\n${economicContext}\n\nユーザーの質問: ${message}`;
+    const result = await model.generateContent(fullPrompt);
+    // ...
+}
+```
+
+**CSS（style.css）:**
+```css
+.gemini-chat-btn {
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 25px;
+}
+
+.modal {
+    position: fixed;
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.chat-message.user {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.chat-message.ai {
+    background: #f0f0f0;
+    color: #333;
+}
+```
+
+#### 9. API Key取得手順（ユーザー向け）
+
+1. [Google AI Studio](https://aistudio.google.com/app/apikey) にアクセス
+2. Googleアカウントでログイン
+3. 「Create API Key」をクリック
+4. 生成されたAPI Keyをコピー
+5. アプリの設定画面に貼り付け
+
+---
+
 ## 次のフェーズで実装予定の機能
 
-### Phase 3（予定）
+### Phase 4（予定）
 - 複数国間の貿易・外交システム
 - 他国のAI動作
 - 経済ショックイベント（不況、好況、災害など）
 - より詳細な経済指標（株価、地価、債券利回りなど）
 
-### Phase 4（予定）
+### Phase 5（予定）
 - マルチプレイヤー対応
 - セーブ/ロード機能
 - 詳細な統計・ランキング
@@ -291,4 +468,5 @@ python3 -m http.server 8000
 
 **Phase 1 完了日**: 2025-10-25
 **Phase 2 完了日**: 2025-10-25
+**Phase 3 完了日**: 2025-10-27
 **次回開発時の注意**: このドキュメントを読んで、現在の実装状況を把握してから作業を開始してください。
