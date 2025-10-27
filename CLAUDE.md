@@ -269,12 +269,23 @@ function updateEconomistCommentary(krugmanComment, levittComment) {
 - 共有PC使用時の注意喚起
 - パスワード入力フィールドでの非表示
 
+**モデル名：**
+- `gemini-2.5-pro` を使用（最新の安定版）
+- 以前のgemini-proから更新
+
 #### 2. UI/UX
 
-##### a. ヘッダー右上のボタン
+##### a. ヘッダー右上の2つのボタン
 ```html
-<button class="gemini-chat-btn">🤖 Geminiに質問する</button>
+<div class="header-buttons">
+    <button class="api-settings-btn">⚙️ API設定</button>
+    <button class="gemini-chat-btn">🤖 Geminiに質問する</button>
+</div>
 ```
+
+**2ボタン方式の採用：**
+- **⚙️ API設定**: APIキーの設定/削除専用ボタン
+- **🤖 Geminiに質問する**: チャット機能へのアクセス
 
 ##### b. チャットモーダル
 - モーダルウィンドウでチャット画面を表示
@@ -379,7 +390,7 @@ function getApiKey() {
 // Gemini初期化
 function initializeGemini(apiKey) {
     genAI = new GoogleGenerativeAI(apiKey);
-    model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
 }
 
 // メッセージ送信
@@ -469,4 +480,6 @@ python3 -m http.server 8000
 **Phase 1 完了日**: 2025-10-25
 **Phase 2 完了日**: 2025-10-25
 **Phase 3 完了日**: 2025-10-27
+**Phase 3 更新日**: 2025-10-27（gemini-2.5-pro + 2ボタンUI）
+**開発ブランチ**: `claude/init-economic-simulator-011CUTcqP6zef55zgcMFpC5H`
 **次回開発時の注意**: このドキュメントを読んで、現在の実装状況を把握してから作業を開始してください。
