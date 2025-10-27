@@ -1,12 +1,12 @@
 /**
  * Gemini AI経済アドバイザーシステム
- * 完全リファクタリング版 - 2025-10-27
+ * 2025年版 - 新SDK (@google/genai) 使用
  *
- * 使用パッケージ: @google/generative-ai (ブラウザ用)
- * Note: @google/genai はNode.js用。ブラウザでは @google/generative-ai を使用。
+ * 使用パッケージ: @google/genai (2025年以降の公式SDK)
+ * 旧パッケージ: @google/generative-ai (2025年11月30日サポート終了)
  *
  * Google公式ドキュメント:
- * https://ai.google.dev/gemini-api/docs/get-started/javascript
+ * https://ai.google.dev/gemini-api/docs
  */
 
 // ==================== 定数 ====================
@@ -46,10 +46,10 @@ const CONFIG = {
 
 // ==================== 状態管理 ====================
 const State = {
-    model: null,
-    chatHistory: [],
+    ai: null,  // GoogleGenAI インスタンス
     isInitialized: false,
-    isProcessing: false
+    isProcessing: false,
+    chatHistory: []
 };
 
 // ==================== API Key管理 ====================
@@ -64,7 +64,7 @@ const ApiKeyManager = {
 
     remove() {
         localStorage.removeItem(CONFIG.STORAGE_KEY);
-        State.model = null;
+        State.ai = null;
         State.isInitialized = false;
     },
 
@@ -90,47 +90,39 @@ const GeminiAPI = {
     // ライブラリのロードを待つ
     async waitForLibrary(maxWait = 5000) {
         const startTime = Date.now();
-        while (typeof GoogleGenerativeAI === 'undefined') {
+        while (typeof GoogleGenAI === 'undefined') {
             if (Date.now() - startTime > maxWait) {
                 throw new Error('Gemini APIライブラリの読み込みがタイムアウトしました');
             }
             await new Promise(resolve => setTimeout(resolve, 100));
         }
-        console.log('✅ GoogleGenerativeAI is ready');
+        console.log('✅ GoogleGenAI is ready');
     },
 
     async initialize(apiKey) {
         try {
-            // GoogleGenerativeAIがロードされるまで待つ
+            // GoogleGenAIがロードされるまで待つ
             await this.waitForLibrary();
 
-            if (typeof GoogleGenerativeAI === 'undefined') {
+            if (typeof GoogleGenAI === 'undefined') {
                 throw new Error('Gemini APIライブラリが読み込まれていません');
             }
 
-            // モデルを初期化（Google公式の書き方に準拠）
-            const genAI = new GoogleGenerativeAI(apiKey);
-            State.model = genAI.getGenerativeModel({
-                model: CONFIG.MODEL_NAME
+            // 新しいSDKの書き方（Google公式）
+            State.ai = new GoogleGenAI({
+                apiKey: apiKey
             });
-
-            // 生成設定（オプション）
-            State.generationConfig = {
-                temperature: 0.9,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 2048,
-            };
 
             State.isInitialized = true;
             console.log(`✅ Gemini initialized successfully`);
             console.log(`📦 Model: ${CONFIG.MODEL_NAME}`);
+            console.log(`🆕 Using new SDK: @google/genai`);
 
             return { success: true };
 
         } catch (error) {
             console.error('❌ Gemini initialization failed:', error);
-            State.model = null;
+            State.ai = null;
             State.isInitialized = false;
 
             return {
@@ -141,7 +133,7 @@ const GeminiAPI = {
     },
 
     async sendMessage(userMessage) {
-        if (!State.model || !State.isInitialized) {
+        if (!State.ai || !State.isInitialized) {
             throw new Error('Gemini APIが初期化されていません');
         }
 
@@ -158,10 +150,13 @@ const GeminiAPI = {
             // プロンプトを構築
             const fullPrompt = `${CONFIG.SYSTEM_PROMPT}\n\n${economicContext}\n\nユーザーの質問: ${userMessage}`;
 
-            // API呼び出し（Google公式の書き方）
-            const result = await State.model.generateContent(fullPrompt);
-            const response = await result.response;
-            const text = response.text();
+            // 新しいSDKの書き方（Google公式）
+            const response = await State.ai.models.generateContent({
+                model: CONFIG.MODEL_NAME,
+                contents: fullPrompt
+            });
+
+            const text = response.text;
 
             // 履歴に追加
             State.chatHistory.push(
@@ -175,9 +170,8 @@ const GeminiAPI = {
             console.error('❌ Message send failed:', error);
             console.error('Error details:', {
                 message: error.message,
-                status: error.status,
-                statusText: error.statusText,
-                response: error.response
+                name: error.name,
+                stack: error.stack
             });
 
             // エラーの種類に応じたメッセージ
@@ -189,8 +183,9 @@ const GeminiAPI = {
             } else if (error.message?.includes('quota') || error.message?.includes('limit') || error.message?.includes('RESOURCE_EXHAUSTED')) {
                 errorMessage = 'API使用量制限に達しました。しばらく待ってから再試行してください';
             } else if (error.message?.includes('model not found') || error.message?.includes('models/') || error.message?.includes('404')) {
-                errorMessage = `モデル "${CONFIG.MODEL_NAME}" が見つかりません。モデル名を確認してください`;
-                console.error('Available models: gemini-1.5-pro, gemini-1.5-flash, gemini-2.0-flash-exp');
+                errorMessage = `モデル "${CONFIG.MODEL_NAME}" の呼び出しに失敗しました。\n\nエラー詳細: ${error.message}`;
+                console.error('🔍 使用中のモデル:', CONFIG.MODEL_NAME);
+                console.error('💡 利用可能なモデル: gemini-2.5-pro, gemini-2.5-flash, gemini-1.5-pro, gemini-1.5-flash');
             } else if (error.message) {
                 errorMessage = error.message;
             }
@@ -480,7 +475,7 @@ window.handleChatKeypress = function(event) {
 
 // ==================== 初期化 ====================
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Gemini Chat System initialized');
+    console.log('🚀 Gemini Chat System initialized (New SDK)');
 
     // モーダル外クリックで閉じる
     document.addEventListener('click', function(event) {

@@ -205,11 +205,11 @@
         </div>
     </div>
 
-    <!-- Gemini API (ESM版をグローバルに公開) -->
+    <!-- Gemini API (新SDK: @google/genai) -->
     <script type="module">
-        import { GoogleGenerativeAI } from 'https://esm.run/@google/generative-ai';
-        window.GoogleGenerativeAI = GoogleGenerativeAI;
-        console.log('✅ GoogleGenerativeAI loaded');
+        import { GoogleGenAI } from 'https://esm.run/@google/genai';
+        window.GoogleGenAI = GoogleGenAI;
+        console.log('✅ GoogleGenAI (New SDK) loaded');
     </script>
 
     <script src="app.js"></script>
