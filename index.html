@@ -9,8 +9,16 @@
 </head>
 <body>
     <header>
-        <h1>🌍 Economic Policy Simulator</h1>
-        <p>あなたは経済政策の指導者です。政策を決定し、経済への影響を学びましょう</p>
+        <div class="header-content">
+            <div class="header-left">
+                <h1>🌍 Economic Policy Simulator</h1>
+                <p>あなたは経済政策の指導者です。政策を決定し、経済への影響を学びましょう</p>
+            </div>
+            <div class="header-buttons">
+                <button class="api-settings-btn" onclick="openApiSettings()">⚙️ API設定</button>
+                <button class="ai-chat-btn" onclick="openAiChat()">🤖 AIに質問</button>
+            </div>
+        </div>
     </header>
 
     <div class="container">
@@ -130,6 +138,45 @@
         </aside>
     </div>
 
+    <!-- API設定モーダル -->
+    <div id="api-settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Gemini API設定</h2>
+                <span class="close-btn" onclick="closeApiSettings()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Google Gemini APIキーを入力してください。</p>
+                <p class="api-note">※ このキーはブラウザのLocalStorageに保存されます（公開リポジトリのためサーバー保存なし）</p>
+                <input type="password" id="api-key-input" placeholder="AIza..." />
+                <div class="modal-actions">
+                    <button class="save-btn" onclick="saveApiKey()">保存</button>
+                    <button class="cancel-btn" onclick="closeApiSettings()">キャンセル</button>
+                </div>
+                <p class="api-status" id="api-status"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI質問モーダル -->
+    <div id="ai-chat-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>🤖 AI経済アドバイザー</h2>
+                <span class="close-btn" onclick="closeAiChat()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="chat-messages" class="chat-messages"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="経済政策について質問してください..." />
+                    <button class="send-btn" onclick="sendMessage()">送信</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@google/generative-ai"></script>
+    <script src="gemini-chat.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
