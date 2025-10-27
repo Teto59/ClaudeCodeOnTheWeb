@@ -14,9 +14,17 @@
                 <h1>🌍 Economic Policy Simulator</h1>
                 <p>あなたは経済政策の指導者です。政策を決定し、経済への影響を学びましょう</p>
             </div>
-            <div class="header-buttons">
-                <button class="api-settings-btn" onclick="openApiKeyModal()">⚙️ API設定</button>
-                <button class="gemini-chat-btn" onclick="openGeminiChat()">🤖 Geminiに質問する</button>
+            <div class="header-actions">
+                <button class="api-key-btn" onclick="openApiKeyModal()" title="APIキーを設定">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                    </svg>
+                    <span>API設定</span>
+                </button>
+                <button class="gemini-chat-btn" onclick="openGeminiChat()">
+                    <span class="btn-icon">🤖</span>
+                    <span>Geminiに質問する</span>
+                </button>
             </div>
         </div>
     </header>

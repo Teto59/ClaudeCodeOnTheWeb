@@ -481,5 +481,129 @@ python3 -m http.server 8000
 **Phase 2 完了日**: 2025-10-25
 **Phase 3 完了日**: 2025-10-27
 **Phase 3 更新日**: 2025-10-27（gemini-2.5-pro + 2ボタンUI）
+**Phase 3 リファクタリング**: 2025-10-27（モダンUI + 完全書き直し）
 **開発ブランチ**: `claude/init-economic-simulator-011CUTcqP6zef55zgcMFpC5H`
+
+---
+
+## Phase 3リファクタリング: モダンUI + システム完全書き直し ✅ 完了
+
+### 変更内容
+
+#### 1. モダンなUI実装
+
+**ヘッダーボタンのリデザイン:**
+```html
+<div class="header-actions">
+    <!-- API設定ボタン：モダンなアイコンスタイル -->
+    <button class="api-key-btn">
+        <svg class="icon">...</svg>
+        <span>API設定</span>
+    </button>
+
+    <!-- Geminiチャットボタン：元のスタイル維持＆強化 -->
+    <button class="gemini-chat-btn">
+        <span class="btn-icon">🤖</span>
+        <span>Geminiに質問する</span>
+    </button>
+</div>
+```
+
+**デザインの特徴:**
+- **API設定ボタン**: SVGアイコン、白背景、ボーダー、ホバーで紫に変化
+- **Geminiボタン**: 元の紫グラデーション維持、ホバーで浮き上がるエフェクト強化
+- **トランジション**: `cubic-bezier(0.4, 0, 0.2, 1)` でスムーズなアニメーション
+- **レスポンシブ**: モバイルで縦並び、中央揃え
+
+#### 2. gemini-chat.js完全書き直し
+
+**アーキテクチャの改善:**
+- **モジュール化**: 機能ごとにオブジェクトで分離（`ApiKeyManager`, `GeminiAPI`, `UI`, `EconomicStateHelper`）
+- **エラーハンドリング強化**: 詳細なエラーメッセージと適切な処理
+- **状態管理**: `State`オブジェクトで一元管理
+- **非同期処理**: async/awaitでクリーンな処理フロー
+- **バリデーション**: APIキーの詳細な検証
+
+**主要オブジェクト:**
+```javascript
+// 設定
+const CONFIG = {
+    MODEL_NAME: 'gemini-2.5-pro',
+    STORAGE_KEY: 'gemini_api_key',
+    SYSTEM_PROMPT: '...'
+};
+
+// 状態管理
+const State = {
+    model: null,
+    chatHistory: [],
+    isInitialized: false,
+    isProcessing: false
+};
+
+// API Key管理
+const ApiKeyManager = {
+    get(), set(), remove(), validate()
+};
+
+// Gemini API
+const GeminiAPI = {
+    async initialize(apiKey),
+    async sendMessage(userMessage)
+};
+
+// UI管理
+const UI = {
+    Modal: { open(), close() },
+    Chat: { clear(), addMessage(), showLoading(), removeLoading() },
+    Input: { getValue(), setValue(), clear(), setDisabled() }
+};
+
+// 経済状態ヘルパー
+const EconomicStateHelper = {
+    getContext()
+};
+```
+
+**改善されたエラーハンドリング:**
+- APIキー未設定時の適切な誘導
+- API呼び出しエラーの詳細な分類
+- ネットワークエラー、Quota制限、モデル不存在などの個別対応
+- 処理中の重複リクエスト防止
+
+#### 3. CSS改善
+
+**モダンなスタイル:**
+```css
+/* API設定ボタン */
+.api-key-btn {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.api-key-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+/* Geminiチャットボタン */
+.gemini-chat-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gemini-chat-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+```
+
+---
+
 **次回開発時の注意**: このドキュメントを読んで、現在の実装状況を把握してから作業を開始してください。
