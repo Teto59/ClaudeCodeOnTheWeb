@@ -270,7 +270,7 @@ function updateEconomistCommentary(krugmanComment, levittComment) {
 - パスワード入力フィールドでの非表示
 
 **モデル名：**
-- `gemini-2.5-pro` を使用（最新の安定版）
+- `gemini-1.5-pro` を使用（最新の安定版）
 - 以前のgemini-proから更新
 
 #### 2. UI/UX
@@ -390,7 +390,7 @@ function getApiKey() {
 // Gemini初期化
 function initializeGemini(apiKey) {
     genAI = new GoogleGenerativeAI(apiKey);
-    model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+    model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 }
 
 // メッセージ送信
@@ -480,7 +480,7 @@ python3 -m http.server 8000
 **Phase 1 完了日**: 2025-10-25
 **Phase 2 完了日**: 2025-10-25
 **Phase 3 完了日**: 2025-10-27
-**Phase 3 更新日**: 2025-10-27（gemini-2.5-pro + 2ボタンUI）
+**Phase 3 更新日**: 2025-10-27（gemini-1.5-pro + 2ボタンUI）
 **Phase 3 リファクタリング**: 2025-10-27（モダンUI + 完全書き直し）
 **Phase 3 バグ修正**: 2025-10-27（CDNライブラリ読み込み修正）
 **開発ブランチ**: `claude/init-economic-simulator-011CUTcqP6zef55zgcMFpC5H`
@@ -529,7 +529,7 @@ python3 -m http.server 8000
 ```javascript
 // 設定
 const CONFIG = {
-    MODEL_NAME: 'gemini-2.5-pro',
+    MODEL_NAME: 'gemini-1.5-pro',
     STORAGE_KEY: 'gemini_api_key',
     SYSTEM_PROMPT: '...'
 };
@@ -665,6 +665,22 @@ const GeminiAPI = {
 ✅ APIキーの入力と初期化が正常に動作
 ✅ エラーハンドリングも適切に機能
 ✅ ユーザー体験の向上
+
+### 追加修正: モデル名の変更
+
+**問題:**
+- メッセージ送信後、「考え中...」から返答が返ってこない
+- モデル名「gemini-2.5-pro」が存在しない
+
+**解決策:**
+- モデル名を `gemini-1.5-pro` に変更（Google公式の最新安定版）
+- エラーログを強化して詳細なデバッグ情報を出力
+- 404エラー、API key無効、quota制限などを詳細に分類
+
+**利用可能なモデル:**
+- `gemini-1.5-pro` - 最新の安定版（推奨）
+- `gemini-1.5-flash` - 高速版
+- `gemini-2.0-flash-exp` - 実験版
 
 ---
 

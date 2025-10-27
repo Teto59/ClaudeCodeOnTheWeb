@@ -5,7 +5,7 @@
 
 // ==================== 定数 ====================
 const CONFIG = {
-    MODEL_NAME: 'gemini-2.5-pro',
+    MODEL_NAME: 'gemini-1.5-pro',  // 最新の安定版モデル
     STORAGE_KEY: 'gemini_api_key',
     SYSTEM_PROMPT: `あなたは2人の著名な経済学者の知見を統合したAIアシスタントです：
 
@@ -115,7 +115,8 @@ const GeminiAPI = {
             });
 
             State.isInitialized = true;
-            console.log(`✅ Gemini initialized: ${CONFIG.MODEL_NAME}`);
+            console.log(`✅ Gemini initialized successfully`);
+            console.log(`📦 Model: ${CONFIG.MODEL_NAME}`);
 
             return { success: true };
 
@@ -164,17 +165,24 @@ const GeminiAPI = {
 
         } catch (error) {
             console.error('❌ Message send failed:', error);
+            console.error('Error details:', {
+                message: error.message,
+                status: error.status,
+                statusText: error.statusText,
+                response: error.response
+            });
 
             // エラーの種類に応じたメッセージ
             let errorMessage = 'エラーが発生しました';
 
-            if (error.message?.includes('API key')) {
+            if (error.message?.includes('API key') || error.message?.includes('API_KEY_INVALID')) {
                 errorMessage = 'APIキーが無効です。設定を確認してください';
                 ApiKeyManager.remove();
-            } else if (error.message?.includes('quota') || error.message?.includes('limit')) {
+            } else if (error.message?.includes('quota') || error.message?.includes('limit') || error.message?.includes('RESOURCE_EXHAUSTED')) {
                 errorMessage = 'API使用量制限に達しました。しばらく待ってから再試行してください';
-            } else if (error.message?.includes('model not found')) {
-                errorMessage = `モデル "${CONFIG.MODEL_NAME}" が見つかりません`;
+            } else if (error.message?.includes('model not found') || error.message?.includes('models/') || error.message?.includes('404')) {
+                errorMessage = `モデル "${CONFIG.MODEL_NAME}" が見つかりません。モデル名を確認してください`;
+                console.error('Available models: gemini-1.5-pro, gemini-1.5-flash, gemini-2.0-flash-exp');
             } else if (error.message) {
                 errorMessage = error.message;
             }
