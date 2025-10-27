@@ -1,6 +1,12 @@
 /**
  * Gemini AI経済アドバイザーシステム
  * 完全リファクタリング版 - 2025-10-27
+ *
+ * 使用パッケージ: @google/generative-ai (ブラウザ用)
+ * Note: @google/genai はNode.js用。ブラウザでは @google/generative-ai を使用。
+ *
+ * Google公式ドキュメント:
+ * https://ai.google.dev/gemini-api/docs/get-started/javascript
  */
 
 // ==================== 定数 ====================
@@ -102,17 +108,19 @@ const GeminiAPI = {
                 throw new Error('Gemini APIライブラリが読み込まれていません');
             }
 
-            // モデルを初期化
+            // モデルを初期化（Google公式の書き方に準拠）
             const genAI = new GoogleGenerativeAI(apiKey);
             State.model = genAI.getGenerativeModel({
-                model: CONFIG.MODEL_NAME,
-                generationConfig: {
-                    temperature: 0.9,
-                    topK: 40,
-                    topP: 0.95,
-                    maxOutputTokens: 2048,
-                }
+                model: CONFIG.MODEL_NAME
             });
+
+            // 生成設定（オプション）
+            State.generationConfig = {
+                temperature: 0.9,
+                topK: 40,
+                topP: 0.95,
+                maxOutputTokens: 2048,
+            };
 
             State.isInitialized = true;
             console.log(`✅ Gemini initialized successfully`);
@@ -150,7 +158,7 @@ const GeminiAPI = {
             // プロンプトを構築
             const fullPrompt = `${CONFIG.SYSTEM_PROMPT}\n\n${economicContext}\n\nユーザーの質問: ${userMessage}`;
 
-            // API呼び出し
+            // API呼び出し（Google公式の書き方）
             const result = await State.model.generateContent(fullPrompt);
             const response = await result.response;
             const text = response.text();
