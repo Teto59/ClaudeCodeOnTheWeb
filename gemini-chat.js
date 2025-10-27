@@ -5,7 +5,7 @@
 
 // ==================== 定数 ====================
 const CONFIG = {
-    MODEL_NAME: 'gemini-1.5-pro',  // 最新の安定版モデル
+    MODEL_NAME: 'gemini-2.5-pro',  // 最新の安定版モデル
     STORAGE_KEY: 'gemini_api_key',
     SYSTEM_PROMPT: `あなたは2人の著名な経済学者の知見を統合したAIアシスタントです：
 
