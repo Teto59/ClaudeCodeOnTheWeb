@@ -9,8 +9,24 @@
 </head>
 <body>
     <header>
-        <h1>🌍 Economic Policy Simulator</h1>
-        <p>あなたは経済政策の指導者です。政策を決定し、経済への影響を学びましょう</p>
+        <div class="header-content">
+            <div class="header-left">
+                <h1>🌍 Economic Policy Simulator</h1>
+                <p>あなたは経済政策の指導者です。政策を決定し、経済への影響を学びましょう</p>
+            </div>
+            <div class="header-actions">
+                <button class="api-key-btn" onclick="openApiKeyModal()" title="APIキーを設定">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                    </svg>
+                    <span>API設定</span>
+                </button>
+                <button class="gemini-chat-btn" onclick="openGeminiChat()">
+                    <span class="btn-icon">🤖</span>
+                    <span>Geminiに質問する</span>
+                </button>
+            </div>
+        </div>
     </header>
 
     <div class="container">
@@ -130,6 +146,73 @@
         </aside>
     </div>
 
+    <!-- Gemini チャットモーダル -->
+    <div id="gemini-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🤖 経済学者AIチャット</h2>
+                <button class="close-btn" onclick="closeGeminiChat()">&times;</button>
+            </div>
+            <div class="modal-body" id="chat-container">
+                <!-- チャット履歴がここに表示される -->
+            </div>
+            <div class="modal-footer">
+                <input type="text" id="chat-input" placeholder="経済政策について質問してください..." onkeypress="handleChatKeypress(event)">
+                <button class="send-btn" onclick="sendMessage()">送信</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Key 設定モーダル -->
+    <div id="api-key-modal" class="modal">
+        <div class="modal-content api-key-setup">
+            <div class="modal-header">
+                <h2>🔑 Gemini API Key 設定</h2>
+            </div>
+            <div class="modal-body">
+                <p>このチャット機能を使用するには、Google AI StudioからAPI Keyを取得してください。</p>
+
+                <div class="info-box">
+                    <h4>📋 API Key取得手順：</h4>
+                    <ol>
+                        <li><a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a> にアクセス</li>
+                        <li>Googleアカウントでログイン</li>
+                        <li>「Create API Key」をクリック</li>
+                        <li>生成されたAPI Keyをコピー</li>
+                        <li>下の入力欄に貼り付け</li>
+                    </ol>
+                </div>
+
+                <div class="input-group">
+                    <label for="api-key-input">API Key:</label>
+                    <input type="password" id="api-key-input" placeholder="AIza...">
+                </div>
+
+                <div class="warning-box">
+                    <p>⚠️ <strong>注意事項：</strong></p>
+                    <ul>
+                        <li>API Keyはブラウザのローカルストレージにのみ保存されます</li>
+                        <li>外部サーバーには送信されません</li>
+                        <li>共有PCでは使用を避けてください</li>
+                        <li>いつでも設定画面から削除できます</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="closeApiKeyModal()">キャンセル</button>
+                <button class="save-btn" onclick="saveApiKey()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gemini API (新SDK: @google/genai) -->
+    <script type="module">
+        import { GoogleGenAI } from 'https://esm.run/@google/genai';
+        window.GoogleGenAI = GoogleGenAI;
+        console.log('✅ GoogleGenAI (New SDK) loaded');
+    </script>
+
     <script src="app.js"></script>
+    <script src="gemini-chat.js" defer></script>
 </body>
 </html>
