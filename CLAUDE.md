@@ -678,9 +678,47 @@ const GeminiAPI = {
 - 404エラー、API key無効、quota制限などを詳細に分類
 
 **利用可能なモデル:**
-- `gemini-2.5-pro` - 最新の安定版（推奨）
-- `gemini-1.5-flash` - 高速版
-- `gemini-2.0-flash-exp` - 実験版
+- `gemini-2.5-flash` - 高速版（デフォルト・レート制限緩い）
+- `gemini-2.5-pro` - 最新の安定版（高品質・レート制限厳しい）
+
+---
+
+## Phase 3アップデート: モデル選択機能の追加 ✅ 完了
+
+### 実装内容
+
+#### 1. モデル選択UI
+- API設定モーダルにモデル選択ドロップダウンを追加
+- gemini-2.5-flash（デフォルト・高速・レート制限緩い）
+- gemini-2.5-pro（高品質・レート制限厳しい）
+
+#### 2. ModelManager実装
+- LocalStorageにモデル選択を保存
+- getCurrentModel()で選択されたモデルを取得
+- デフォルトはgemini-2.5-flash
+
+#### 3. エラーメッセージの改善
+- 503エラー時: "レートリミットに達しました。しばらく待ってから再度試行してください。"
+- 存在しないモデル名（gemini-1.5-pro, gemini-1.5-flash）をすべて削除
+
+#### 4. 技術実装
+```javascript
+// ModelManager
+const ModelManager = {
+    get() { return localStorage.getItem(CONFIG.STORAGE_KEY_MODEL) || CONFIG.DEFAULT_MODEL; },
+    set(modelName) { localStorage.setItem(CONFIG.STORAGE_KEY_MODEL, modelName); },
+    getCurrentModel() { return this.get(); }
+};
+
+// 動的なモデル選択
+const currentModel = ModelManager.getCurrentModel();
+const response = await State.ai.models.generateContent({
+    model: currentModel,
+    contents: fullPrompt
+});
+```
+
+**実装日**: 2025-10-27
 
 ---
 
