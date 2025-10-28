@@ -368,8 +368,8 @@ function updateEconomistCommentary(krugmanComment, levittComment) {
 - ✅ メッセージ送受信
 - ✅ ローディング表示
 - ✅ エラーハンドリング
-- ✅ 経済状態の自動送信
-- ✅ システムプロンプト（2人の経済学者）
+- ✅ 経済状態の自動送信（基本指標＋債務指標）
+- ✅ システムプロンプト（3人の経済学者：クルーグマン、レヴィット、ダリオ）
 - ✅ レスポンシブ対応
 
 #### 8. コードの主要部分
@@ -377,9 +377,10 @@ function updateEconomistCommentary(krugmanComment, levittComment) {
 **JavaScript（gemini-chat.js）:**
 ```javascript
 const SYSTEM_PROMPT = `
-あなたは2人の著名な経済学者の知見を統合したAIアシスタントです：
+あなたは3人の著名な経済学者の知見を統合したAIアシスタントです：
 【ポール・クルーグマン】...
 【スティーヴン・レヴィット】...
+【レイ・ダリオ】...
 `;
 
 // API Key管理
@@ -719,6 +720,122 @@ const response = await State.ai.models.generateContent({
 ```
 
 **実装日**: 2025-10-27
+
+---
+
+## Phase 3アップデート: 3人の経済学者システム ✅ 完了
+
+### 実装内容
+
+#### 1. レイ・ダリオの視点を追加
+
+Phase 4で債務システムが追加されたことを受け、Geminiチャットシステムも3人の経済学者の視点に拡張。
+
+**新規追加されたレイ・ダリオの特徴：**
+- **専門分野**: 債務サイクル、歴史的パターン分析、マクロ経済の長期トレンド
+- **アプローチ**:
+  - 歴史は繰り返す（過去500年のデータ分析）
+  - 債務サイクル理論（短期5-8年、長期75-100年）
+  - 「美しいデレバレッジング」の4要素（緊縮、債務削減、富の再分配、マネタイゼーション）
+  - 国家の興亡サイクル（The Changing World Order）
+- **主著**: "Principles for Dealing with the Changing World Order", "Principles for Navigating Big Debt Crises"
+- **特徴的な視点**:
+  - 長期的・歴史的視点（数十年～数百年のスパン）
+  - r > g 問題、債務対GDP比率の持続可能性
+  - 歴史的事例：オランダ帝国、大英帝国、米国覇権、中国の台頭、ワイマール共和国、大恐慌、2008年金融危機
+  - 実践的な投資家としての視点（ブリッジウォーター創業者）
+
+#### 2. システムプロンプトの拡張
+
+**変更前（2人）:**
+```javascript
+あなたは2人の著名な経済学者の知見を統合したAIアシスタントです：
+【ポール・クルーグマン】
+【スティーヴン・レヴィット】
+
+【回答形式】
+- クルーグマンの視点（理論的・グローバル）
+- レヴィットの視点（データ・インセンティブ）
+- 総合的な推奨事項
+```
+
+**変更後（3人）:**
+```javascript
+あなたは3人の著名な経済学者の知見を統合したAIアシスタントです：
+【ポール・クルーグマン】
+【スティーヴン・レヴィット】
+【レイ・ダリオ】
+
+【回答形式】
+必ず以下の形式で回答してください：
+
+## 🌍 クルーグマンの視点（理論的・グローバル）
+[理論的な分析、経済モデル、グローバルな影響]
+
+## 💡 レヴィットの視点（データ・インセンティブ）
+[データと統計、インセンティブ構造、意図しない結果]
+
+## 📊 ダリオの視点（債務サイクル・歴史的パターン）
+[長期的な債務サイクル、歴史的事例、持続可能性の分析]
+
+## 🎯 総合的な推奨事項
+[3人の視点を統合した具体的なアドバイス]
+```
+
+#### 3. 債務指標の統合
+
+`EconomicStateHelper.getContext()`を拡張し、Phase 4で追加された債務指標も送信：
+
+```javascript
+【現在の経済状態（ターン${currentTurn}）】
+
+📊 基本指標：
+- GDP成長率: ${economicState.gdpGrowth.toFixed(1)}%
+- インフレ率: ${economicState.inflation.toFixed(1)}%
+- 失業率: ${economicState.unemployment.toFixed(1)}%
+- 金利: ${economicState.interestRate.toFixed(1)}%
+- 為替レート: ${economicState.exchangeRate.toFixed(0)} (対ドル)
+- 貿易収支: ${economicState.tradeBalance.toFixed(0)}億
+- 政府支出: ${economicState.governmentSpending.toFixed(0)}億
+- 関税率: ${economicState.tariffRate.toFixed(1)}%
+
+💰 債務指標：
+- 政府債務残高: ${economicState.governmentDebt.toFixed(0)}億
+- 名目GDP: ${economicState.nominalGDP.toFixed(0)}億
+- 債務対GDP比率: ${economicState.debtToGDP.toFixed(1)}%
+- 利払い費: ${economicState.interestPayment.toFixed(0)}億/年
+- 税収: ${economicState.taxRevenue.toFixed(0)}億/年
+- 財政収支: ${economicState.fiscalBalance.toFixed(0)}億 (黒字/赤字)
+
+🔍 r vs g 分析：
+⚠️ r > g (金利 X.X% > 名目成長率 X.X%)
+または
+✅ r < g (金利 X.X% < 名目成長率 X.X%)
+
+※この経済状態を考慮して、3人の経済学者の視点から具体的にアドバイスしてください
+```
+
+#### 4. ウェルカムメッセージの更新
+
+```javascript
+// 変更前
+'こんにちは！経済政策について質問してください。\n\n🌍 **クルーグマン**と💡 **レヴィット**の視点から分析します。\n\n現在の経済状態を考慮した具体的なアドバイスを提供できます。'
+
+// 変更後
+'こんにちは！経済政策について質問してください。\n\n🌍 **クルーグマン**、💡 **レヴィット**、📊 **ダリオ**の3人の視点から分析します。\n\n現在の経済状態（債務指標含む）を考慮した具体的なアドバイスを提供できます。'
+```
+
+#### 5. 実装の利点
+
+- **理論（クルーグマン）、データ（レヴィット）、歴史（ダリオ）** の3つの側面から分析
+- 債務対GDP比率やr > g 問題に関する専門的なアドバイス
+- 短期的影響（数年）と長期的影響（数十年）の両方を考慮
+- 歴史的事例（大恐慌、欧州債務危機など）を引用した実践的なアドバイス
+
+---
+
+**実装日**: 2025-10-28
+**開発ブランチ**: `claude/init-economic-simulator-011CUTcqP6zef55zgcMFpC5H`
 
 ---
 
