@@ -1,9 +1,9 @@
 // 経済指標の状態管理
 let economicState = {
-    gdpGrowth: 2.5,        // GDP成長率（%）
-    inflation: 2.0,        // インフレ率（%）
+    gdpGrowth: -0.5,       // GDP成長率（%）- 低成長（r > g の状況）
+    inflation: 0.5,        // インフレ率（%）- デフレ寸前（r > g の状況）
     unemployment: 5.0,     // 失業率（%）
-    interestRate: 3.0,     // 金利（%）
+    interestRate: 3.0,     // 金利（%）- r > g: 3.0% > 0% (名目成長率)
     exchangeRate: 100,     // 為替レート（対ドル）
     tradeBalance: 0,       // 貿易収支（億）
     governmentSpending: 1000,  // 政府支出（億）
@@ -20,8 +20,8 @@ let economicState = {
 
 // 履歴データ（グラフ用）
 let history = {
-    gdpGrowth: [2.5],
-    inflation: [2.0],
+    gdpGrowth: [-0.5],
+    inflation: [0.5],
     unemployment: [5.0],
     interestRate: [3.0],
     exchangeRate: [100],
@@ -445,8 +445,8 @@ function adjustExchangeRate(change) {
 function resetSimulation() {
     if (confirm('シミュレーションをリセットしますか？すべてのデータが初期状態に戻ります。')) {
         economicState = {
-            gdpGrowth: 2.5,
-            inflation: 2.0,
+            gdpGrowth: -0.5,
+            inflation: 0.5,
             unemployment: 5.0,
             interestRate: 3.0,
             exchangeRate: 100,
@@ -464,8 +464,8 @@ function resetSimulation() {
         };
 
         history = {
-            gdpGrowth: [2.5],
-            inflation: [2.0],
+            gdpGrowth: [-0.5],
+            inflation: [0.5],
             unemployment: [5.0],
             interestRate: [3.0],
             exchangeRate: [100],
@@ -482,8 +482,8 @@ function resetSimulation() {
 
         // グラフをリセット
         chart.data.labels = ['ターン1'];
-        chart.data.datasets[0].data = [2.5];
-        chart.data.datasets[1].data = [2.0];
+        chart.data.datasets[0].data = [-0.5];
+        chart.data.datasets[1].data = [0.5];
         chart.data.datasets[2].data = [5.0];
         chart.data.datasets[3].data = [3.0];
         chart.update();
@@ -491,18 +491,21 @@ function resetSimulation() {
         updateDisplay();
 
         document.getElementById('krugman-commentary').innerHTML = `
-            <p>経済は現在、安定した状態にあります。GDP成長率は2.5%で健全な範囲です。</p>
+            <p>⚠️ 経済は低成長・デフレ寸前の厳しい状態です。GDP成長率は-0.5%、インフレ率は0.5%です。</p>
+            <p>さらに深刻なのは、<strong>r > g</strong>（金利3.0% > 名目成長率0%）の状況にあることです。債務が雪だるま式に増加します。</p>
             <p>政策を実行すると、その効果を理論的観点から解説します。</p>
         `;
 
         document.getElementById('levitt-commentary').innerHTML = `
-            <p>インフレ率は目標の2%に近い水準を維持しています。</p>
+            <p>この経済状態では、企業も家計も守りに入ります。投資を控え、消費を減らす。</p>
+            <p>データによると、デフレ期には現金保有が30%増加する傾向があります。</p>
             <p>政策を実行すると、実際のデータと人々の行動から解説します。</p>
         `;
 
         document.getElementById('dalio-commentary').innerHTML = `
-            <p>債務サイクルは歴史的なパターンを繰り返します。</p>
-            <p>債務政策を実行すると、「美しいデレバレッジング」の観点から解説します。</p>
+            <p>⚠️ これは長期債務サイクルの危機局面です。r > g の状況は、1930年代の大恐慌、2008年の金融危機と同じパターンです。</p>
+            <p>債務対GDP比率200%は既に危機レベルです。何もしなければ、利払い費だけで債務は増え続けます。</p>
+            <p>「美しいデレバレッジング」が必要です。債務政策を慎重に選択してください。</p>
         `;
     }
 }
