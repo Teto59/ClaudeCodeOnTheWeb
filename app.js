@@ -7,7 +7,15 @@ let economicState = {
     exchangeRate: 100,     // 為替レート（対ドル）
     tradeBalance: 0,       // 貿易収支（億）
     governmentSpending: 1000,  // 政府支出（億）
-    tariffRate: 5.0        // 関税率（%）
+    tariffRate: 5.0,       // 関税率（%）
+
+    // Phase 4: 債務関連指標
+    governmentDebt: 2000,      // 政府債務残高（億）
+    nominalGDP: 10000,         // 名目GDP（億）
+    debtToGDP: 200,            // 債務対GDP比率（%）
+    interestPayment: 60,       // 利払い費（億/年）
+    taxRevenue: 1000,          // 税収（億/年）
+    fiscalBalance: -60         // 財政収支（億/年）税収 - 政府支出 - 利払い費
 };
 
 // 履歴データ（グラフ用）
@@ -17,7 +25,13 @@ let history = {
     unemployment: [5.0],
     interestRate: [3.0],
     exchangeRate: [100],
-    tradeBalance: [0]
+    tradeBalance: [0],
+
+    // Phase 4: 債務履歴
+    governmentDebt: [2000],
+    debtToGDP: [200],
+    interestPayment: [60],
+    fiscalBalance: [-60]
 };
 
 let currentTurn = 1;
@@ -40,6 +54,34 @@ function updateDisplay() {
     document.getElementById('spending-value').textContent = economicState.governmentSpending.toFixed(0) + '億';
     document.getElementById('tariff-value').textContent = economicState.tariffRate.toFixed(1) + '%';
     document.getElementById('current-turn').textContent = currentTurn;
+
+    // Phase 4: 債務指標の表示
+    document.getElementById('debt-value').textContent = economicState.governmentDebt.toFixed(0) + '億';
+    document.getElementById('debt-ratio-value').textContent = economicState.debtToGDP.toFixed(1) + '%';
+    document.getElementById('interest-payment-value').textContent = economicState.interestPayment.toFixed(0) + '億/年';
+    document.getElementById('tax-revenue-value').textContent = economicState.taxRevenue.toFixed(0) + '億/年';
+    document.getElementById('nominal-gdp-value').textContent = economicState.nominalGDP.toFixed(0) + '億';
+
+    // 財政収支の表示（赤字/黒字の表記）
+    const fiscalBalanceEl = document.getElementById('fiscal-balance-value');
+    const fiscalStatusEl = document.getElementById('fiscal-status');
+    fiscalBalanceEl.textContent = economicState.fiscalBalance.toFixed(0) + '億';
+    if (economicState.fiscalBalance < 0) {
+        fiscalBalanceEl.style.color = '#f44336';
+        fiscalStatusEl.textContent = '(赤字)';
+    } else {
+        fiscalBalanceEl.style.color = '#4caf50';
+        fiscalStatusEl.textContent = '(黒字)';
+    }
+
+    // 債務対GDP比率のステータス
+    updateDebtStatus();
+
+    // 債務メーターの更新
+    updateDebtMeter();
+
+    // r > g 警告の更新
+    updateRGWarning();
 }
 
 // Chart.jsの初期化
@@ -131,12 +173,57 @@ function updateEconomistCommentary(krugmanComment, levittComment) {
 // 次のターンへ進む
 function nextTurn() {
     currentTurn++;
+
+    // Phase 4: 債務の動態計算
+    calculateDebtDynamics();
+
+    // 履歴に追加
     history.gdpGrowth.push(economicState.gdpGrowth);
     history.inflation.push(economicState.inflation);
     history.unemployment.push(economicState.unemployment);
     history.interestRate.push(economicState.interestRate);
     history.exchangeRate.push(economicState.exchangeRate);
     history.tradeBalance.push(economicState.tradeBalance);
+
+    // Phase 4: 債務履歴に追加
+    history.governmentDebt.push(economicState.governmentDebt);
+    history.debtToGDP.push(economicState.debtToGDP);
+    history.interestPayment.push(economicState.interestPayment);
+    history.fiscalBalance.push(economicState.fiscalBalance);
+}
+
+// Phase 4: 債務の動態計算関数
+function calculateDebtDynamics() {
+    // 1. 名目GDPの計算（簡易版：前回の名目GDP × (1 + 実質成長率/100) × (1 + インフレ率/100)）
+    economicState.nominalGDP = economicState.nominalGDP *
+        (1 + economicState.gdpGrowth / 100) *
+        (1 + economicState.inflation / 100);
+
+    // 2. 利払い費の計算
+    economicState.interestPayment = economicState.governmentDebt * economicState.interestRate / 100;
+
+    // 3. 財政収支の計算（税収 - 政府支出 - 利払い費）
+    economicState.fiscalBalance = economicState.taxRevenue -
+        economicState.governmentSpending -
+        economicState.interestPayment;
+
+    // 4. 債務残高の更新（赤字なら債務増加）
+    if (economicState.fiscalBalance < 0) {
+        economicState.governmentDebt += Math.abs(economicState.fiscalBalance);
+    } else {
+        // 黒字なら債務減少
+        economicState.governmentDebt -= economicState.fiscalBalance;
+        economicState.governmentDebt = Math.max(0, economicState.governmentDebt);
+    }
+
+    // 5. 債務対GDP比率の計算
+    economicState.debtToGDP = (economicState.governmentDebt / economicState.nominalGDP) * 100;
+
+    // 6. r > g チェック（警告システムは別途実装）
+    const nominalGrowthRate = economicState.gdpGrowth + economicState.inflation;
+    if (economicState.interestRate > nominalGrowthRate) {
+        console.warn(`⚠️ r > g: 金利(${economicState.interestRate.toFixed(1)}%) > 名目成長率(${nominalGrowthRate.toFixed(1)}%)`);
+    }
 }
 
 // 金利調整
@@ -204,6 +291,10 @@ function adjustGovernmentSpending(change) {
         economicState.gdpGrowth += 0.5;
         economicState.inflation += 0.3;
         economicState.unemployment -= 0.3;
+
+        // Phase 4: 債務への影響
+        economicState.interestRate += 0.2; // 国債発行増加→金利上昇
+        economicState.exchangeRate += 2; // 財政悪化→通貨安
 
         krugmanComment = `
             <p><strong>典型的なケインジアン政策だ。</strong>需要が不足している時には効果的。</p>
@@ -386,4 +477,213 @@ function resetSimulation() {
             <p>政策を実行すると、実際のデータと人々の行動から解説します。</p>
         `;
     }
+}
+
+// ==================== Phase 4: 債務危機警告システム ====================
+
+// 債務対GDP比率のステータス更新
+function updateDebtStatus() {
+    const debtStatusEl = document.getElementById('debt-status');
+    const debtRatioEl = document.getElementById('debt-ratio-value');
+    const ratio = economicState.debtToGDP;
+
+    if (ratio > 250) {
+        debtStatusEl.textContent = '🔴 破綻リスク';
+        debtStatusEl.style.color = '#d32f2f';
+        debtRatioEl.style.color = '#d32f2f';
+    } else if (ratio > 150) {
+        debtStatusEl.textContent = '🟠 危機レベル';
+        debtStatusEl.style.color = '#f57c00';
+        debtRatioEl.style.color = '#f57c00';
+    } else if (ratio > 90) {
+        debtStatusEl.textContent = '🟡 警告レベル';
+        debtStatusEl.style.color = '#fbc02d';
+        debtRatioEl.style.color = '#fbc02d';
+    } else {
+        debtStatusEl.textContent = '🟢 健全';
+        debtStatusEl.style.color = '#388e3c';
+        debtRatioEl.style.color = '#388e3c';
+    }
+}
+
+// 債務メーターの更新
+function updateDebtMeter() {
+    const meterBar = document.getElementById('debt-meter-bar');
+    const ratio = economicState.debtToGDP;
+
+    // メーターの幅を計算（最大400%として）
+    const percentage = Math.min((ratio / 400) * 100, 100);
+    meterBar.style.width = percentage + '%';
+
+    // 色を変更
+    if (ratio > 250) {
+        meterBar.style.background = 'linear-gradient(90deg, #f44336 0%, #d32f2f 100%)';
+    } else if (ratio > 150) {
+        meterBar.style.background = 'linear-gradient(90deg, #ff9800 0%, #f57c00 100%)';
+    } else if (ratio > 90) {
+        meterBar.style.background = 'linear-gradient(90deg, #ffeb3b 0%, #fbc02d 100%)';
+    } else {
+        meterBar.style.background = 'linear-gradient(90deg, #4caf50 0%, #388e3c 100%)';
+    }
+}
+
+// r > g 警告の更新
+function updateRGWarning() {
+    const warningEl = document.getElementById('rg-warning');
+    const warningTextEl = document.getElementById('rg-warning-text');
+
+    const r = economicState.interestRate;
+    const g = economicState.gdpGrowth + economicState.inflation; // 名目成長率
+
+    if (r > g) {
+        warningEl.style.display = 'block';
+        warningTextEl.innerHTML = `
+            金利 <strong>${r.toFixed(1)}%</strong> > 名目成長率 <strong>${g.toFixed(1)}%</strong><br>
+            <small>債務が持続不可能な軌道にあります。債務対GDP比率が加速的に増加します。</small>
+        `;
+    } else {
+        warningEl.style.display = 'none';
+    }
+}
+
+// ==================== Phase 4: 債務政策関数 ====================
+
+// 1. 国債発行
+function issueDebt(amount) {
+    economicState.governmentDebt += amount;
+    economicState.interestRate += 0.1; // 供給増加で金利上昇
+    economicState.exchangeRate += 1; // 財政悪化懸念で通貨安
+
+    const krugmanComment = `
+        <p><strong>国債発行は財政赤字のファイナンス手段だ。</strong></p>
+        <p>短期的には資金を調達できるが、長期的には債務負担が増加する。
+        国債の供給が増えれば、需給関係で金利が上昇し、民間投資がクラウドアウトされるリスクがある。</p>
+        <p>重要なのは、<strong>r > g の関係</strong>だ。金利が成長率を上回れば、債務は雪だるま式に増える。</p>
+    `;
+
+    const levittComment = `
+        <p>政府が借金を増やすと、誰が貸すのか？データによると、多くの場合<strong>中央銀行が最大の買い手</strong>になる。</p>
+        <p>これは実質的な<strong>マネー・プリンティング</strong>だ。短期的には問題ないが、
+        過度に続けば市場は「この国の通貨は信用できない」と判断し、通貨安とインフレを招く。</p>
+        <p>歴史を見れば、アルゼンチン、ジンバブエ、ワイマール共和国...同じパターンの繰り返しだ。</p>
+    `;
+
+    updateEconomistCommentary(krugmanComment, levittComment);
+    nextTurn();
+    updateDisplay();
+    updateChart();
+}
+
+// 2. 増税
+function increaseTax(percentage) {
+    economicState.taxRevenue += economicState.taxRevenue * (percentage / 100);
+    economicState.gdpGrowth -= 0.3; // 増税で消費減少
+    economicState.inflation -= 0.2; // 需要減少
+
+    const krugmanComment = `
+        <p><strong>増税は財政再建の正攻法だ。</strong>しかし、タイミングが重要だ。</p>
+        <p>不況時に増税すれば、経済をさらに冷え込ませる。<strong>財政乗数</strong>は1.5～2程度あり、
+        増税の悪影響は大きい。日本の消費税増税の失敗を見れば明らかだ。</p>
+        <p>一方、好況時の増税は経済への影響が小さく、債務を削減する好機となる。</p>
+    `;
+
+    const levittComment = `
+        <p>増税すると何が起きるか？<strong>人々は脱税のインセンティブを持つ</strong>ようになる。</p>
+        <p>データによると、税率が10%上がると、地下経済が15%拡大する。
+        富裕層はタックスヘイブンに資産を移し、中間層は副業を現金でやり取りするようになる。</p>
+        <p>政府が期待するほど税収は増えない。これが<strong>ラッファー曲線</strong>の現実だ。</p>
+    `;
+
+    updateEconomistCommentary(krugmanComment, levittComment);
+    nextTurn();
+    updateDisplay();
+    updateChart();
+}
+
+// 3. 緊縮財政
+function austerity() {
+    economicState.governmentSpending -= 200;
+    economicState.governmentSpending = Math.max(100, economicState.governmentSpending);
+    economicState.gdpGrowth -= 0.5; // 政府支出削減で需要減少
+    economicState.unemployment += 0.4; // 公共部門の雇用削減
+    economicState.inflation -= 0.3;
+
+    const krugmanComment = `
+        <p><strong>緊縮財政は、不況時には最悪の選択だ。</strong></p>
+        <p>2010年代の欧州債務危機を思い出せ。ギリシャ、スペイン、ポルトガルは
+        IMFと EUの要求で緊縮財政を実施し、<strong>大不況に陥った</strong>。</p>
+        <p>債務対GDP比率はむしろ悪化した。なぜなら、分母のGDPが急激に縮小したからだ。
+        これは<strong>self-defeating austerity</strong>（自滅的緊縮）と呼ばれる。</p>
+    `;
+
+    const levittComment = `
+        <p>政府支出を削減すると、最初に影響を受けるのは誰か？<strong>貧困層と公務員</strong>だ。</p>
+        <p>データによると、緊縮財政で最も苦しむのは社会的弱者だ。一方、富裕層は資産を海外に移し、
+        影響を回避できる。これは<strong>不平等を拡大</strong>させる政策だ。</p>
+        <p>また、公共サービスの質が低下し、犯罪率が上昇する傾向がある。意図しない結果だ。</p>
+    `;
+
+    updateEconomistCommentary(krugmanComment, levittComment);
+    nextTurn();
+    updateDisplay();
+    updateChart();
+}
+
+// 4. 債務リストラクチャリング
+function debtRestructuring() {
+    economicState.governmentDebt *= 0.7; // 30%削減
+    economicState.interestRate += 2.0; // 信用低下で金利急騰
+    economicState.exchangeRate += 10; // 通貨急落
+    economicState.gdpGrowth -= 1.5; // 信用危機で経済収縮
+
+    const krugmanComment = `
+        <p><strong>債務リストラは、事実上のデフォルトだ。</strong></p>
+        <p>アルゼンチンは2001年に、ギリシャは2012年に債務再編を実施した。
+        短期的には債務負担が軽減されるが、<strong>国際市場からの信用を失う</strong>。</p>
+        <p>金利は急騰し、新たな借り入れは極めて困難になる。経済は深刻な不況に陥り、
+        回復には10年以上かかることもある。最後の手段として考えるべきだ。</p>
+    `;
+
+    const levittComment = `
+        <p>債務を踏み倒すとどうなるか？<strong>信用が崩壊する。</strong></p>
+        <p>データによると、デフォルト後の国は平均して15年間、国際資本市場から締め出される。
+        金利は3～5倍に跳ね上がり、外国投資は激減する。</p>
+        <p>企業は海外に逃げ、富裕層は資産を移転する。残されるのは貧困層だけだ。
+        これは<strong>経済的な自殺</strong>に近い選択だ。</p>
+    `;
+
+    updateEconomistCommentary(krugmanComment, levittComment);
+    nextTurn();
+    updateDisplay();
+    updateChart();
+}
+
+// 5. 債務のマネタイゼーション
+function debtMonetization() {
+    economicState.governmentDebt -= 500; // 中央銀行が500億を引き受け
+    economicState.governmentDebt = Math.max(0, economicState.governmentDebt);
+    economicState.inflation += 1.5; // マネーサプライ増加でインフレ
+    economicState.exchangeRate += 5; // 通貨安
+    economicState.interestRate -= 0.3; // 中銀購入で金利低下
+
+    const krugmanComment = `
+        <p><strong>これがレイ・ダリオの言う「美しいデレバレッジング」の鍵だ。</strong></p>
+        <p>1930年代の大恐慌後、2008年のリーマンショック後、中央銀行は大規模な
+        量的緩和（QE）を実施した。これは事実上の債務のマネタイゼーションだ。</p>
+        <p>適度に行えばデフレを防ぎ、経済を支える。しかし<strong>過度に行えばハイパーインフレ</strong>を招く。
+        バランスが重要だ。</p>
+    `;
+
+    const levittComment = `
+        <p>中央銀行が政府の借金を肩代わりする。これは<strong>魔法の解決策</strong>に見えるが、実は違う。</p>
+        <p>データによると、マネタイゼーションが名目GDP比で30%を超えると、インフレ率は
+        平均して2倍になる。50%を超えると、ハイパーインフレのリスクが急上昇する。</p>
+        <p>ジンバブエ、ベネズエラ、ワイマール共和国...同じ道を歩んだ国々の末路を見れば、
+        この政策の危険性がわかる。<strong>麻薬のようなものだ。</strong></p>
+    `;
+
+    updateEconomistCommentary(krugmanComment, levittComment);
+    nextTurn();
+    updateDisplay();
+    updateChart();
 }
