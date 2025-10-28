@@ -153,20 +153,29 @@ function updateChart() {
     chart.update();
 }
 
-// 経済学者の解説を更新（2人）
-function updateEconomistCommentary(krugmanComment, levittComment) {
+// 経済学者の解説を更新（3人）
+function updateEconomistCommentary(krugmanComment, levittComment, dalioComment = null) {
     const krugmanCommentary = document.getElementById('krugman-commentary');
     const levittCommentary = document.getElementById('levitt-commentary');
+    const dalioCommentary = document.getElementById('dalio-commentary');
 
     // アニメーションをリセットして再適用
     krugmanCommentary.style.animation = 'none';
     levittCommentary.style.animation = 'none';
+    if (dalioComment) {
+        dalioCommentary.style.animation = 'none';
+    }
 
     setTimeout(() => {
         krugmanCommentary.innerHTML = krugmanComment;
         levittCommentary.innerHTML = levittComment;
         krugmanCommentary.style.animation = 'fadeIn 0.5s ease-in';
         levittCommentary.style.animation = 'fadeIn 0.5s ease-in';
+
+        if (dalioComment) {
+            dalioCommentary.innerHTML = dalioComment;
+            dalioCommentary.style.animation = 'fadeIn 0.5s ease-in';
+        }
     }, 10);
 }
 
@@ -443,7 +452,15 @@ function resetSimulation() {
             exchangeRate: 100,
             tradeBalance: 0,
             governmentSpending: 1000,
-            tariffRate: 5.0
+            tariffRate: 5.0,
+
+            // Phase 4: 債務関連指標
+            governmentDebt: 2000,
+            nominalGDP: 10000,
+            debtToGDP: 200,
+            interestPayment: 60,
+            taxRevenue: 1000,
+            fiscalBalance: -60
         };
 
         history = {
@@ -452,7 +469,13 @@ function resetSimulation() {
             unemployment: [5.0],
             interestRate: [3.0],
             exchangeRate: [100],
-            tradeBalance: [0]
+            tradeBalance: [0],
+
+            // Phase 4: 債務履歴
+            governmentDebt: [2000],
+            debtToGDP: [200],
+            interestPayment: [60],
+            fiscalBalance: [-60]
         };
 
         currentTurn = 1;
@@ -475,6 +498,11 @@ function resetSimulation() {
         document.getElementById('levitt-commentary').innerHTML = `
             <p>インフレ率は目標の2%に近い水準を維持しています。</p>
             <p>政策を実行すると、実際のデータと人々の行動から解説します。</p>
+        `;
+
+        document.getElementById('dalio-commentary').innerHTML = `
+            <p>債務サイクルは歴史的なパターンを繰り返します。</p>
+            <p>債務政策を実行すると、「美しいデレバレッジング」の観点から解説します。</p>
         `;
     }
 }
@@ -568,10 +596,18 @@ function issueDebt(amount) {
         <p>歴史を見れば、アルゼンチン、ジンバブエ、ワイマール共和国...同じパターンの繰り返しだ。</p>
     `;
 
+    const dalioComment = `
+        <p><strong>債務サイクルの初期段階だ。</strong></p>
+        <p>短期債務サイクルと長期債務サイクルの2つを理解する必要がある。
+        国債発行は経済成長を支えるが、<strong>r > g</strong> の状態が続けば、債務は指数関数的に増加する。</p>
+        <p>私は何度もこのパターンを見てきた。1920年代のアメリカ、1980年代の日本、2000年代のアメリカ...
+        債務が積み上がり、やがて<strong>デレバレッジングの局面</strong>に入る。今はまだその前だ。</p>
+    `;
+
     nextTurn();
     updateDisplay();
     updateChart();
-    updateEconomistCommentary(krugmanComment, levittComment);
+    updateEconomistCommentary(krugmanComment, levittComment, dalioComment);
 }
 
 // 2. 増税
@@ -594,10 +630,18 @@ function increaseTax(percentage) {
         <p>政府が期待するほど税収は増えない。これが<strong>ラッファー曲線</strong>の現実だ。</p>
     `;
 
+    const dalioComment = `
+        <p><strong>富の再分配は、美しいデレバレッジングの4要素の1つだ。</strong></p>
+        <p>歴史的に見て、債務危機の解決には増税が不可欠だった。しかし、<strong>タイミングと対象が重要</strong>だ。
+        富裕層への増税は社会的には受け入れられやすいが、投資と消費を冷え込ませる。</p>
+        <p>1930年代のアメリカでは、最高税率が25%から94%に引き上げられた。
+        これは<strong>社会的安定</strong>を保つために必要だったが、経済回復を遅らせた側面もある。</p>
+    `;
+
     nextTurn();
     updateDisplay();
     updateChart();
-    updateEconomistCommentary(krugmanComment, levittComment);
+    updateEconomistCommentary(krugmanComment, levittComment, dalioComment);
 }
 
 // 3. 緊縮財政
@@ -623,10 +667,18 @@ function austerity() {
         <p>また、公共サービスの質が低下し、犯罪率が上昇する傾向がある。意図しない結果だ。</p>
     `;
 
+    const dalioComment = `
+        <p><strong>緊縮財政は、美しいデレバレッジングの4要素の1つだが、単独では危険だ。</strong></p>
+        <p>私は「Principles for Navigating Big Debt Crises」で、過度な緊縮が<strong>デフレ性デレバレッジング</strong>を引き起こすと書いた。
+        欧州債務危機がその典型例だ。</p>
+        <p>緊縮だけでは債務対GDP比率はむしろ悪化する。なぜなら、分母のGDPが分子の債務削減より早く縮小するからだ。
+        <strong>バランスの取れたアプローチ</strong>が必要だ。</p>
+    `;
+
     nextTurn();
     updateDisplay();
     updateChart();
-    updateEconomistCommentary(krugmanComment, levittComment);
+    updateEconomistCommentary(krugmanComment, levittComment, dalioComment);
 }
 
 // 4. 債務リストラクチャリング
@@ -652,10 +704,18 @@ function debtRestructuring() {
         これは<strong>経済的な自殺</strong>に近い選択だ。</p>
     `;
 
+    const dalioComment = `
+        <p><strong>債務削減は、美しいデレバレッジングの4要素の1つだが、最も痛みを伴う。</strong></p>
+        <p>私は48の債務危機を研究してきた。デフォルトは避けられない場合もある。
+        しかし、重要なのは<strong>どのように行うか</strong>だ。</p>
+        <p>秩序あるリストラクチャリング（ギリシャ2012年）と無秩序なデフォルト（アルゼンチン2001年）では、
+        その後の回復スピードが大きく異なる。債権者との協調が鍵だ。</p>
+    `;
+
     nextTurn();
     updateDisplay();
     updateChart();
-    updateEconomistCommentary(krugmanComment, levittComment);
+    updateEconomistCommentary(krugmanComment, levittComment, dalioComment);
 }
 
 // 5. 債務のマネタイゼーション
@@ -682,8 +742,17 @@ function debtMonetization() {
         この政策の危険性がわかる。<strong>麻薬のようなものだ。</strong></p>
     `;
 
+    const dalioComment = `
+        <p><strong>これが「美しいデレバレッジング」の核心だ。</strong></p>
+        <p>債務のマネタイゼーションは、4要素の中で最も強力で、最も危険だ。
+        適切に行えば、デフレを防ぎ、経済を支える。過度に行えば、ハイパーインフレを招く。</p>
+        <p>2008年のリーマンショック後、FRB、ECB、日銀は大規模なQEを実施した。
+        これは事実上のマネタイゼーションだが、<strong>インフレ率を2%に抑えた</strong>。
+        鍵は、緊縮、債務削減、増税と<strong>バランスを取ること</strong>だ。</p>
+    `;
+
     nextTurn();
     updateDisplay();
     updateChart();
-    updateEconomistCommentary(krugmanComment, levittComment);
+    updateEconomistCommentary(krugmanComment, levittComment, dalioComment);
 }
