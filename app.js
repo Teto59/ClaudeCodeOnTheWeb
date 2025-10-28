@@ -297,9 +297,9 @@ function adjustGovernmentSpending(change) {
 
     if (change > 0) {
         // 支出増加
-        economicState.gdpGrowth += 0.5;
+        economicState.gdpGrowth += 0.2;  // 現実的には乗数効果は限定的
         economicState.inflation += 0.3;
-        economicState.unemployment -= 0.3;
+        economicState.unemployment -= 0.2;  // 雇用創出効果も限定的
 
         // Phase 4: 債務への影響
         economicState.interestRate += 0.2; // 国債発行増加→金利上昇
@@ -307,8 +307,8 @@ function adjustGovernmentSpending(change) {
 
         krugmanComment = `
             <p><strong>典型的なケインジアン政策だ。</strong>需要が不足している時には効果的。</p>
-            <p>政府支出は<strong>乗数効果</strong>で経済を刺激し、失業率を下げる。1ドルの政府支出が、最終的に1.5～2ドルのGDP増加をもたらす。</p>
-            <p>ただし、インフレリスクには注意が必要だ。財源をどうするかも重要な問題だ。増税か国債発行か、選択を間違えると効果が半減する。</p>
+            <p>政府支出は<strong>乗数効果</strong>で経済を刺激し、失業率を下げる。しかし、財源が国債発行なら、債務は支出額以上に増える。</p>
+            <p>問題は、<strong>債務の増加 > GDP成長</strong>になりがちだ。短期的な景気刺激と、長期的な債務持続可能性のトレードオフだ。</p>
         `;
 
         levittComment = `
@@ -318,14 +318,14 @@ function adjustGovernmentSpending(change) {
         `;
     } else {
         // 支出減少
-        economicState.gdpGrowth -= 0.4;
+        economicState.gdpGrowth -= 0.3;  // 緊縮の影響はあるが、現実的に調整
         economicState.inflation -= 0.2;
-        economicState.unemployment += 0.3;
+        economicState.unemployment += 0.2;  // 雇用への影響も調整
 
         krugmanComment = `
-            <p><strong>財政緊縮政策だ。</strong>需要が不足している時にこれを行うと、経済はさらに悪化する。</p>
-            <p>公共投資や社会保障が縮小し、総需要が減少する。失業率が上昇し、経済は螺旋的に悪化する可能性がある。</p>
-            <p><strong>欧州債務危機</strong>の時、多くの国が緊縮財政で経済を悪化させた。財政健全化は重要だが、タイミングを間違えると逆効果だ。</p>
+            <p><strong>財政緊縮政策だ。</strong>債務を減らすために支出を削減するのは正しい方向だが、タイミングが重要だ。</p>
+            <p>短期的にはGDPが下がるが、債務の増加は止まる。<strong>債務対GDP比率は、長期的には改善</strong>する可能性がある。</p>
+            <p>ただし、<strong>欧州債務危機</strong>のように、過度な緊縮は「self-defeating」になる。GDPが債務削減より早く縮小すれば、比率は悪化する。バランスが鍵だ。</p>
         `;
 
         levittComment = `
