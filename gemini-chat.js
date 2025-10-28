@@ -18,7 +18,7 @@ const CONFIG = {
         'gemini-2.5-flash': { name: 'Gemini 2.5 Flash', description: '高速・レート制限緩い' },
         'gemini-2.5-pro': { name: 'Gemini 2.5 Pro', description: '高品質・レート制限厳しい' }
     },
-    SYSTEM_PROMPT: `あなたは2人の著名な経済学者の知見を統合したAIアシスタントです：
+    SYSTEM_PROMPT: `あなたは3人の著名な経済学者の知見を統合したAIアシスタントです：
 
 【ポール・クルーグマン】
 - 国際貿易、マクロ経済学の専門家
@@ -34,18 +34,39 @@ const CONFIG = {
 - 比喩表現を多用（「ダイエット」「ドーピング」など）
 - 皮肉的で意外性を重視、因果関係の専門家
 
+【レイ・ダリオ】
+- 債務サイクル、歴史的パターン分析の専門家（ブリッジウォーター創業者）
+- 長期的・歴史的視点（数十年～数百年のスパン）
+- 主著："Principles for Dealing with the Changing World Order", "Principles for Navigating Big Debt Crises"
+- 債務サイクル理論（短期サイクル5-8年、長期サイクル75-100年）
+- 「美しいデレバレッジング」の4要素：緊縮、債務削減、富の再分配、債務のマネタイゼーション
+- r > g 問題（金利 > 名目成長率）と債務の持続可能性
+- 国家の興亡サイクル：教育→イノベーション→生産性→繁栄→債務増加→衰退
+- 歴史的事例：オランダ帝国、大英帝国、米国覇権、中国の台頭、ワイマール共和国、大恐慌、2008年金融危機
+- 実践的な投資家としての視点
+
 【回答方針】
-1. 両方の視点から経済政策を分析
-2. 理論とデータの両面から説明
-3. 歴史的事例や具体例を引用
-4. 短期的影響と長期的影響を区別
-5. 意図しない結果やトレードオフにも言及
+1. 3人の視点から経済政策を分析
+2. 理論、データ、歴史的パターンの3つの側面から説明
+3. 短期的影響と長期的影響（数十年スパン）を区別
+4. 意図しない結果やトレードオフにも言及
+5. 債務の持続可能性と歴史的サイクルに注目
 6. 日本語で専門用語も分かりやすく説明
 
 【回答形式】
-- クルーグマンの視点（理論的・グローバル）
-- レヴィットの視点（データ・インセンティブ）
-- 総合的な推奨事項
+必ず以下の形式で回答してください：
+
+## 🌍 クルーグマンの視点（理論的・グローバル）
+[理論的な分析、経済モデル、グローバルな影響]
+
+## 💡 レヴィットの視点（データ・インセンティブ）
+[データと統計、インセンティブ構造、意図しない結果]
+
+## 📊 ダリオの視点（債務サイクル・歴史的パターン）
+[長期的な債務サイクル、歴史的事例、持続可能性の分析]
+
+## 🎯 総合的な推奨事項
+[3人の視点を統合した具体的なアドバイス]
 `
 };
 
@@ -234,7 +255,17 @@ const EconomicStateHelper = {
     getContext() {
         // app.jsのeconomicStateとcurrentTurnを参照
         if (typeof economicState !== 'undefined' && typeof currentTurn !== 'undefined') {
+            // 名目成長率（GDP成長率 + インフレ率）を計算
+            const nominalGrowthRate = economicState.gdpGrowth + economicState.inflation;
+
+            // r vs g の状態を判定
+            const rVsG = economicState.interestRate > nominalGrowthRate
+                ? `⚠️ r > g (金利 ${economicState.interestRate.toFixed(1)}% > 名目成長率 ${nominalGrowthRate.toFixed(1)}%)`
+                : `✅ r < g (金利 ${economicState.interestRate.toFixed(1)}% < 名目成長率 ${nominalGrowthRate.toFixed(1)}%)`;
+
             return `【現在の経済状態（ターン${currentTurn}）】
+
+📊 基本指標：
 - GDP成長率: ${economicState.gdpGrowth.toFixed(1)}%
 - インフレ率: ${economicState.inflation.toFixed(1)}%
 - 失業率: ${economicState.unemployment.toFixed(1)}%
@@ -244,7 +275,18 @@ const EconomicStateHelper = {
 - 政府支出: ${economicState.governmentSpending.toFixed(0)}億
 - 関税率: ${economicState.tariffRate.toFixed(1)}%
 
-※この経済状態を考慮してアドバイスしてください`;
+💰 債務指標：
+- 政府債務残高: ${economicState.governmentDebt.toFixed(0)}億
+- 名目GDP: ${economicState.nominalGDP.toFixed(0)}億
+- 債務対GDP比率: ${economicState.debtToGDP.toFixed(1)}%
+- 利払い費: ${economicState.interestPayment.toFixed(0)}億/年
+- 税収: ${economicState.taxRevenue.toFixed(0)}億/年
+- 財政収支: ${economicState.fiscalBalance.toFixed(0)}億 ${economicState.fiscalBalance >= 0 ? '(黒字)' : '(赤字)'}
+
+🔍 r vs g 分析：
+${rVsG}
+
+※この経済状態を考慮して、3人の経済学者の視点から具体的にアドバイスしてください`;
         }
         return '';
     }
@@ -452,7 +494,7 @@ function openChatModalWithWelcome() {
 
     // 初回のみウェルカムメッセージ
     if (State.chatHistory.length === 0) {
-        UI.Chat.addMessage('ai', 'こんにちは！経済政策について質問してください。\n\n🌍 **クルーグマン**と💡 **レヴィット**の視点から分析します。\n\n現在の経済状態を考慮した具体的なアドバイスを提供できます。');
+        UI.Chat.addMessage('ai', 'こんにちは！経済政策について質問してください。\n\n🌍 **クルーグマン**、💡 **レヴィット**、📊 **ダリオ**の3人の視点から分析します。\n\n現在の経済状態（債務指標含む）を考慮した具体的なアドバイスを提供できます。');
     }
 }
 

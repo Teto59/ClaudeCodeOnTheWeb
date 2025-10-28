@@ -57,6 +57,16 @@
                 <button class="policy-btn" onclick="adjustExchangeRate(5)">自国通貨買い (-5)</button>
                 <button class="policy-btn" onclick="adjustExchangeRate(-5)">自国通貨売り (+5)</button>
             </div>
+
+            <!-- Phase 4: 債務政策 -->
+            <div class="policy-section debt-policy">
+                <h3>💰 債務政策</h3>
+                <button class="policy-btn debt-btn" onclick="issueDebt(500)">国債発行 (+500億)</button>
+                <button class="policy-btn debt-btn" onclick="increaseTax(5)">増税 (+5%)</button>
+                <button class="policy-btn debt-btn" onclick="austerity()">緊縮財政 (-200億)</button>
+                <button class="policy-btn debt-btn danger" onclick="debtRestructuring()">債務リストラ (-30%)</button>
+                <button class="policy-btn debt-btn danger" onclick="debtMonetization()">債務のマネタイゼーション</button>
+            </div>
         </aside>
 
         <!-- メインエリア: グラフ表示 -->
@@ -99,6 +109,60 @@
                 </div>
             </div>
 
+            <!-- Phase 4: 債務指標セクション -->
+            <div class="debt-section">
+                <h2>💰 債務指標</h2>
+                <div class="indicators-grid debt-grid">
+                    <div class="indicator debt-indicator">
+                        <h4>政府債務残高</h4>
+                        <p class="value" id="debt-value">20000億</p>
+                    </div>
+                    <div class="indicator debt-indicator">
+                        <h4>債務対GDP比率</h4>
+                        <p class="value debt-ratio" id="debt-ratio-value">200%</p>
+                        <small class="debt-status" id="debt-status">🟠 危機レベル</small>
+                    </div>
+                    <div class="indicator debt-indicator">
+                        <h4>利払い費</h4>
+                        <p class="value" id="interest-payment-value">600億/年</p>
+                    </div>
+                    <div class="indicator debt-indicator">
+                        <h4>財政収支</h4>
+                        <p class="value fiscal-balance" id="fiscal-balance-value">-600億</p>
+                        <small id="fiscal-status">(赤字)</small>
+                    </div>
+                    <div class="indicator debt-indicator">
+                        <h4>税収</h4>
+                        <p class="value" id="tax-revenue-value">1000億/年</p>
+                    </div>
+                    <div class="indicator debt-indicator">
+                        <h4>名目GDP</h4>
+                        <p class="value" id="nominal-gdp-value">10000億</p>
+                    </div>
+                </div>
+
+                <!-- 債務メーター -->
+                <div class="debt-meter-container">
+                    <h4>債務対GDP比率メーター</h4>
+                    <div class="debt-meter">
+                        <div class="debt-meter-bar" id="debt-meter-bar" style="width: 50%"></div>
+                    </div>
+                    <div class="debt-meter-labels">
+                        <span>0%</span>
+                        <span class="meter-threshold">90%<br>🟡</span>
+                        <span class="meter-threshold">150%<br>🟠</span>
+                        <span class="meter-threshold">250%<br>🔴</span>
+                        <span>400%</span>
+                    </div>
+                </div>
+
+                <!-- r vs g 警告 -->
+                <div class="rg-warning" id="rg-warning" style="display: none;">
+                    <strong>⚠️ r > g 警告</strong>
+                    <p id="rg-warning-text"></p>
+                </div>
+            </div>
+
             <div class="chart-container">
                 <canvas id="economicChart"></canvas>
             </div>
@@ -135,6 +199,21 @@
                 <div class="economist-commentary" id="levitt-commentary">
                     <p>インフレ率は目標の2%に近い水準を維持しています。</p>
                     <p>政策を実行すると、実際のデータと人々の行動から解説します。</p>
+                </div>
+            </div>
+
+            <!-- レイ・ダリオのカード -->
+            <div class="economist-card dalio-card">
+                <div class="economist-header">
+                    <span class="economist-icon">📊</span>
+                    <div class="economist-info">
+                        <h3>レイ・ダリオ</h3>
+                        <p class="economist-specialty">債務サイクル・歴史分析</p>
+                    </div>
+                </div>
+                <div class="economist-commentary" id="dalio-commentary">
+                    <p>債務サイクルは歴史的なパターンを繰り返します。</p>
+                    <p>債務政策を実行すると、「美しいデレバレッジング」の観点から解説します。</p>
                 </div>
             </div>
 
