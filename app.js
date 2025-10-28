@@ -568,10 +568,10 @@ function issueDebt(amount) {
         <p>歴史を見れば、アルゼンチン、ジンバブエ、ワイマール共和国...同じパターンの繰り返しだ。</p>
     `;
 
-    updateEconomistCommentary(krugmanComment, levittComment);
     nextTurn();
     updateDisplay();
     updateChart();
+    updateEconomistCommentary(krugmanComment, levittComment);
 }
 
 // 2. 増税
@@ -594,10 +594,10 @@ function increaseTax(percentage) {
         <p>政府が期待するほど税収は増えない。これが<strong>ラッファー曲線</strong>の現実だ。</p>
     `;
 
-    updateEconomistCommentary(krugmanComment, levittComment);
     nextTurn();
     updateDisplay();
     updateChart();
+    updateEconomistCommentary(krugmanComment, levittComment);
 }
 
 // 3. 緊縮財政
@@ -623,10 +623,10 @@ function austerity() {
         <p>また、公共サービスの質が低下し、犯罪率が上昇する傾向がある。意図しない結果だ。</p>
     `;
 
-    updateEconomistCommentary(krugmanComment, levittComment);
     nextTurn();
     updateDisplay();
     updateChart();
+    updateEconomistCommentary(krugmanComment, levittComment);
 }
 
 // 4. 債務リストラクチャリング
@@ -652,10 +652,10 @@ function debtRestructuring() {
         これは<strong>経済的な自殺</strong>に近い選択だ。</p>
     `;
 
-    updateEconomistCommentary(krugmanComment, levittComment);
     nextTurn();
     updateDisplay();
     updateChart();
+    updateEconomistCommentary(krugmanComment, levittComment);
 }
 
 // 5. 債務のマネタイゼーション
@@ -682,8 +682,8 @@ function debtMonetization() {
         この政策の危険性がわかる。<strong>麻薬のようなものだ。</strong></p>
     `;
 
-    updateEconomistCommentary(krugmanComment, levittComment);
     nextTurn();
     updateDisplay();
     updateChart();
+    updateEconomistCommentary(krugmanComment, levittComment);
 }
