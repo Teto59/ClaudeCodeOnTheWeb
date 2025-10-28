@@ -10,12 +10,12 @@ let economicState = {
     tariffRate: 5.0,       // 関税率（%）
 
     // Phase 4: 債務関連指標
-    governmentDebt: 2000,      // 政府債務残高（億）
+    governmentDebt: 20000,     // 政府債務残高（億）
     nominalGDP: 10000,         // 名目GDP（億）
     debtToGDP: 200,            // 債務対GDP比率（%）
-    interestPayment: 60,       // 利払い費（億/年）
+    interestPayment: 600,      // 利払い費（億/年）20000 × 3.0%
     taxRevenue: 1000,          // 税収（億/年）
-    fiscalBalance: -60         // 財政収支（億/年）税収 - 政府支出 - 利払い費
+    fiscalBalance: -600        // 財政収支（億/年）1000 - 1000 - 600
 };
 
 // 履歴データ（グラフ用）
@@ -28,10 +28,10 @@ let history = {
     tradeBalance: [0],
 
     // Phase 4: 債務履歴
-    governmentDebt: [2000],
+    governmentDebt: [20000],
     debtToGDP: [200],
-    interestPayment: [60],
-    fiscalBalance: [-60]
+    interestPayment: [600],
+    fiscalBalance: [-600]
 };
 
 let currentTurn = 1;
@@ -455,12 +455,12 @@ function resetSimulation() {
             tariffRate: 5.0,
 
             // Phase 4: 債務関連指標
-            governmentDebt: 2000,
+            governmentDebt: 20000,
             nominalGDP: 10000,
             debtToGDP: 200,
-            interestPayment: 60,
+            interestPayment: 600,
             taxRevenue: 1000,
-            fiscalBalance: -60
+            fiscalBalance: -600
         };
 
         history = {
@@ -472,10 +472,10 @@ function resetSimulation() {
             tradeBalance: [0],
 
             // Phase 4: 債務履歴
-            governmentDebt: [2000],
+            governmentDebt: [20000],
             debtToGDP: [200],
-            interestPayment: [60],
-            fiscalBalance: [-60]
+            interestPayment: [600],
+            fiscalBalance: [-600]
         };
 
         currentTurn = 1;
